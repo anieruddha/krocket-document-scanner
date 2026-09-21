@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>KRocketDocumentScanner.Imaging</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../KRocketDocumentScanner.Core/KRocketDocumentScanner.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Pinned explicitly rather than left floating — mismatched SkiaSharp versions across
+         projects in the same app cause a real runtime crash: NuGet resolves the managed
+         assembly to the higher version, but the wrong native libSkiaSharp.so gets deployed,
+         and SkiaSharp's own native/managed version check throws at startup. -->
+    <PackageReference Include="SkiaSharp" Version="4.152.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="4.152.1" />
+  </ItemGroup>
+
+</Project>

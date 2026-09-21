@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:KRocketDocumentScanner.App"
+        xmlns:s="clr-namespace:KRocketDocumentScanner.App.ViewModels.Localization;assembly=KRocketDocumentScanner.App.ViewModels"
+        x:Class="KRocketDocumentScanner.App.ScannerUnavailableWindow"
+        Title="{x:Static s:Strings.ScannerUnavailableHeadline}"
+        WindowDecorations="{x:Static local:AppOptions.WindowDecorations}"
+        CanResize="False"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterOwner">
+
+  <Border BorderThickness="{x:Static local:AppOptions.WindowBorderThickness}"
+          BorderBrush="{DynamicResource ThemeBorderStrongBrush}">
+  <DockPanel>
+
+    <!-- Fixed-size utility dialog: close only, no minimize/maximize — same treatment as
+         ManageScannersWindow/AddScannerWindow (§9.5). -->
+    <Border Name="HeaderBorder" DockPanel.Dock="Top" Padding="16,10" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource ThemeBorderBrush}"
+            Background="Transparent"
+            IsVisible="{x:Static local:AppOptions.ShowCustomChrome}"
+            PointerPressed="OnToolbarPointerPressed">
+      <Grid>
+        <TextBlock Text="{Binding $parent[Window].Title}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 FontWeight="SemiBold" TextTrimming="CharacterEllipsis" IsHitTestVisible="False" />
+        <Button Classes="chrome chrome-close" Content="×" ToolTip.Tip="{x:Static s:Strings.CloseTooltip}"
+                Click="OnCloseWindow" HorizontalAlignment="Right" />
+      </Grid>
+    </Border>
+
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                Spacing="14" MaxWidth="420" Margin="48,32">
+      <TextBlock Text="{Binding UnavailableMessage}" TextWrapping="Wrap"
+                 TextAlignment="Center" Opacity="0.8" />
+      <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+        <Button Content="{x:Static s:Strings.ManageScannerButton}" Command="{Binding ChooseAnotherScannerCommand}" Classes="accent" />
+      </StackPanel>
+    </StackPanel>
+  </DockPanel>
+  </Border>
+</Window>

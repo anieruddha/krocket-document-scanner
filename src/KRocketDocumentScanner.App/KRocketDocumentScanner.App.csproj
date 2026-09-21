@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <RootNamespace>KRocketDocumentScanner.App</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- External theme config files, copied next to the built exe so they can be hand-edited
+         to reskin the app without recompiling — see Theming/AppTheme.cs. -->
+    <Content Include="Theming/theme.light.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Theming/theme.dark.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Strings.cs lives in KRocketDocumentScanner.App.ViewModels (needs to be shared with ViewModels, not
+         just this UI project), but the JSON file still needs to end up next to THIS app's
+         exe, since Strings.Load() resolves it via AppContext.BaseDirectory at runtime. -->
+    <Content Include="../KRocketDocumentScanner.App.ViewModels/Localization/strings.*.json" Link="Localization/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../KRocketDocumentScanner.App.ViewModels/KRocketDocumentScanner.App.ViewModels.csproj" />
+    <ProjectReference Include="../KRocketDocumentScanner.Core/KRocketDocumentScanner.Core.csproj" />
+    <ProjectReference Include="../KRocketDocumentScanner.Imaging/KRocketDocumentScanner.Imaging.csproj" />
+    <ProjectReference Include="../KRocketDocumentScanner.Scanning/KRocketDocumentScanner.Scanning.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
+    <PackageReference Include="Tomlyn" Version="2.10.1" />
+  </ItemGroup>
+
+</Project>

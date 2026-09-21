@@ -1,0 +1,113 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="KRocketDocumentScanner.App.App"
+             RequestedThemeVariant="Default">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="/Assets/AppBanner.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+
+    <!-- Fluent paints windows with its own built-in region color (near-black in dark mode),
+         so without this the theme's background/textPrimary never reach the window at all. -->
+    <Style Selector="Window">
+      <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+
+    <!-- Every button shares the themed corner radius, not just the accent one — otherwise a
+         plain button (e.g. Preview) keeps Fluent's default radius and looks different from
+         the accent button (Scan) right beside it. -->
+    <Style Selector="Button">
+      <Setter Property="CornerRadius" Value="{DynamicResource ThemeCornerRadiusSm}" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="{DynamicResource ThemeSurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderStrongBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="{DynamicResource ThemeTextPrimaryBrush}" />
+    </Style>
+    <Style Selector="Button:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource ThemeSurfaceSubtleBrush}" />
+    </Style>
+    <!-- A disabled button must read as disabled: faded, whatever its own colours are. -->
+    <Style Selector="Button:disabled">
+      <Setter Property="Opacity" Value="0.4" />
+    </Style>
+
+    <!-- Explicit "accent" button style, driven by theme resources (see Theming/AppTheme.cs)
+         rather than assuming a built-in Fluent class — so the primary-action button color
+         actually follows theme.light.json / theme.dark.json like everything else. -->
+    <Style Selector="Button.accent">
+      <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ThemeAccentTextBrush}" />
+      <Setter Property="CornerRadius" Value="{DynamicResource ThemeCornerRadiusSm}" />
+    </Style>
+    <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource ThemeAccentBrush}" />
+      <Setter Property="Opacity" Value="0.9" />
+    </Style>
+
+    <!-- Custom window-control buttons (minimize/maximize/close) used by every window's own
+         header now that SystemDecorations="None" removes the OS's native ones by default —
+         see AppOptions. Flat/transparent until hovered, matching the Nautilus reference:
+         a plain glyph that only shows its background on pointerover. -->
+    <Style Selector="Button.chrome">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Width" Value="34" />
+      <Setter Property="Height" Value="28" />
+      <Setter Property="CornerRadius" Value="{DynamicResource ThemeCornerRadiusSm}" />
+    </Style>
+    <Style Selector="Button.chrome:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource ThemeBorderStrongBrush}" />
+    </Style>
+    <!-- Close specifically gets the conventional red hover, same convention GNOME/Windows/
+         macOS all share for "this one is destructive/final." -->
+    <Style Selector="Button.chrome-close:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource ThemeDangerBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ThemeAccentTextBrush}" />
+    </Style>
+
+    <!-- Same "flat until hovered" idea as Button.chrome, but sized for arbitrary content
+         instead of a fixed 34x28 icon square — for a button whose content otherwise reads as
+         plain static text/label (e.g. the scan window's scanner-name chooser), so it still
+         visibly reacts on hover instead of looking inert. -->
+    <Style Selector="Button.linklike">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="6,4" />
+      <Setter Property="CornerRadius" Value="{DynamicResource ThemeCornerRadiusSm}" />
+    </Style>
+    <Style Selector="Button.linklike:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource ThemeBorderStrongBrush}" />
+    </Style>
+
+    <!-- A collapsible panel's own header, styled to read as a small window's title bar (bold
+         label, full-width, a single separator line underneath) rather than as a button —
+         used by the scan window's crop panel toggle. Clicking anywhere on it expands/
+         collapses the panel body docked below (see ScanWindow's OnToggleCropPanel). A plain
+         Button, not a ToggleButton — deliberately, so it never picks up Fluent's own
+         accent-filled "checked" look; pointer-over already comes from the base Button style. -->
+    <Style Selector="Button.panelheader">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ThemeBorderBrush}" />
+      <Setter Property="Padding" Value="12,14" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <!-- Stretch, not Left — the button's own content (a Grid with the label in a "*"
+           column and a chevron in an "Auto" one, see ScanWindow's CropPanelToggle) needs to
+           fill the button's full width for that Grid's own left/right split to have any
+           room to work with; Left content-alignment shrank the Grid to just its children's
+           combined width, pinning the chevron right next to the label instead of the far
+           right edge. -->
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+  </Application.Styles>
+</Application>

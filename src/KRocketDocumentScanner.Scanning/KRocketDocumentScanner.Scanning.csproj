@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>KRocketDocumentScanner.Scanning</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="KRocketDocumentScanner.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../KRocketDocumentScanner.Core/KRocketDocumentScanner.Core.csproj" />
+    <ProjectReference Include="../KRocketDocumentScanner.Imaging/KRocketDocumentScanner.Imaging.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Core scanning library: wraps WIA/TWAIN/SANE/ESCL uniformly. On Linux, Driver.Sane
+         talks to the SANE backends installed on the host (see scripts/install-dependencies.sh);
+         Driver.Escl is used for manually-added network scanners (see Naps2DeviceIdCodec). -->
+    <PackageReference Include="NAPS2.Sdk" Version="1.2.1" />
+    <!-- Image backend for NAPS2.Sdk: a pure-managed (ImageSharp-based) implementation rather
+         than NAPS2.Images.Gtk, deliberately avoiding a GTK dependency in an Avalonia (Skia-based)
+         app that has no other reason to need GTK installed. -->
+    <PackageReference Include="NAPS2.Images.ImageSharp" Version="1.2.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
+  </ItemGroup>
+
+</Project>

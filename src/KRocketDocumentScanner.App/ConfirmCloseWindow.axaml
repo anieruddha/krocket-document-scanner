@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:KRocketDocumentScanner.App"
+        xmlns:s="clr-namespace:KRocketDocumentScanner.App.ViewModels.Localization;assembly=KRocketDocumentScanner.App.ViewModels"
+        x:Class="KRocketDocumentScanner.App.ConfirmCloseWindow"
+        Title="{x:Static s:Strings.UnsavedPagesTitle}"
+        WindowDecorations="{x:Static local:AppOptions.WindowDecorations}"
+        CanResize="False"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterOwner">
+
+  <Border BorderThickness="{x:Static local:AppOptions.WindowBorderThickness}"
+          BorderBrush="{DynamicResource ThemeBorderStrongBrush}">
+  <DockPanel>
+
+    <!-- Fixed-size utility dialog: close only (same as pressing Cancel), no minimize/
+         maximize — same treatment as ScannerUnavailableWindow/ManageScannersWindow. -->
+    <Border Name="HeaderBorder" DockPanel.Dock="Top" Padding="16,10" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource ThemeBorderBrush}"
+            Background="Transparent"
+            IsVisible="{x:Static local:AppOptions.ShowCustomChrome}"
+            PointerPressed="OnToolbarPointerPressed">
+      <Grid>
+        <TextBlock Text="{Binding $parent[Window].Title}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 FontWeight="SemiBold" TextTrimming="CharacterEllipsis" IsHitTestVisible="False" />
+        <Button Classes="chrome chrome-close" Content="×" ToolTip.Tip="{x:Static s:Strings.CancelButton}"
+                Click="OnCancel" HorizontalAlignment="Right" />
+      </Grid>
+    </Border>
+
+    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                Spacing="14" MaxWidth="360" Margin="32">
+      <TextBlock Name="MessageText" TextWrapping="Wrap" TextAlignment="Center" Opacity="0.8" />
+      <!-- Cancel is the desired action: right, primary colour. Close Anyway is the plain one on the left. -->
+      <Grid ColumnDefinitions="Auto,*,Auto" MinWidth="280">
+        <Button Grid.Column="0" Name="DiscardButton" Content="{x:Static s:Strings.DiscardAndCloseButton}" Click="OnDiscard" />
+        <Button Grid.Column="2" Content="{x:Static s:Strings.CancelButton}" Click="OnCancel" Classes="accent" />
+      </Grid>
+    </StackPanel>
+  </DockPanel>
+  </Border>
+</Window>

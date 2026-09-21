@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\KRocketDocumentScanner.Core\KRocketDocumentScanner.Core.csproj" />
+    <ProjectReference Include="..\..\src\KRocketDocumentScanner.Imaging\KRocketDocumentScanner.Imaging.csproj" />
+    <ProjectReference Include="..\..\src\KRocketDocumentScanner.Scanning\KRocketDocumentScanner.Scanning.csproj" />
+    <ProjectReference Include="..\..\src\KRocketDocumentScanner.App.ViewModels\KRocketDocumentScanner.App.ViewModels.csproj" />
+    <ProjectReference Include="..\..\src\KRocketDocumentScanner.App\KRocketDocumentScanner.App.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Headless.XUnit" Version="12.1.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+  </ItemGroup>
+
+</Project>

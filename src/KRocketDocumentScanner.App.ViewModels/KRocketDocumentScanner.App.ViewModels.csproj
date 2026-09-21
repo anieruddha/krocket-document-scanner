@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>KRocketDocumentScanner.App.ViewModels</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Exposes internal members (e.g. AddScannerViewModel.BuildRows) to the verification
+         harness so the logic can be tested directly without making it part of the public API. -->
+    <InternalsVisibleTo Include="KRocketDocumentScanner.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Deliberately zero Avalonia reference. All window/dialog interaction goes through
+         IWindowCoordinator (implemented by KRocketDocumentScanner.App), so this project's logic — state
+         transitions, menu visibility, routing rules — can be fully unit tested without the
+         Avalonia SDK, which this sandbox has no NuGet access to restore anyway. -->
+    <ProjectReference Include="../KRocketDocumentScanner.Core/KRocketDocumentScanner.Core.csproj" />
+  </ItemGroup>
+
+</Project>

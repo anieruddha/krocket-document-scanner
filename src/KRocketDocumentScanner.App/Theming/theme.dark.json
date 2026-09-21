@@ -1,0 +1,20 @@
+{
+  "background": "#FF121212",
+  "surface": "#FF1E1E1E",
+  "surfaceSubtle": "#FF2A2A2A",
+  "border": "#FF2A2A2A",
+  "borderStrong": "#FF3F3F3F",
+  "textPrimary": "#FFF1F1F1",
+  "textSecondary": "#FF9B9B9B",
+  "textMuted": "#FF707070",
+  "accent": "#FF3B82F6",
+  "accentText": "#FFFFFFFF",
+  "danger": "#FFE53935",
+  "ready": "#FF43A047",
+  "notReady": "#FF707070",
+  "cropDim": "#B3000000",
+  "paper": "#FF1E1E1E",
+  "pageShadow": "#80000000",
+  "toolbar": "#FF181818",
+  "toolbarInactive": "#FF121212"
+}

@@ -1,0 +1,128 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:KRocketDocumentScanner.App"
+        xmlns:s="clr-namespace:KRocketDocumentScanner.App.ViewModels.Localization;assembly=KRocketDocumentScanner.App.ViewModels"
+        x:Class="KRocketDocumentScanner.App.ManageScannersWindow"
+        Title="{x:Static s:Strings.ManageScannersTitle}"
+        WindowDecorations="{x:Static local:AppOptions.WindowDecorations}"
+        CanResize="False"
+        Width="560" Height="440"
+        WindowStartupLocation="CenterOwner">
+
+  <Border BorderThickness="{x:Static local:AppOptions.WindowBorderThickness}"
+          BorderBrush="{DynamicResource ThemeBorderStrongBrush}">
+  <DockPanel>
+
+    <!-- Fixed-size utility dialog: close only, no minimize/maximize — there's nothing here
+         worth maximizing or backgrounding. Still needs its own drag region and close button
+         once the native title bar is gone, same as every other window (see AppOptions). -->
+    <Border Name="HeaderBorder" DockPanel.Dock="Top" Padding="16,10" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource ThemeBorderBrush}"
+            Background="Transparent"
+            IsVisible="{x:Static local:AppOptions.ShowCustomChrome}"
+            PointerPressed="OnToolbarPointerPressed">
+      <Grid>
+        <TextBlock Text="{Binding $parent[Window].Title}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 FontWeight="SemiBold" TextTrimming="CharacterEllipsis" IsHitTestVisible="False" />
+        <Button Classes="chrome chrome-close" Content="×" ToolTip.Tip="{x:Static s:Strings.CloseTooltip}"
+                Click="OnCloseWindow" HorizontalAlignment="Right" />
+      </Grid>
+    </Border>
+
+    <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" MinHeight="0"
+                 IsVisible="{Binding IsBusy}" />
+
+    <DockPanel Margin="20">
+
+      <!-- Nothing to refresh and no reason to duplicate Add in the footer while the list is
+           empty — the empty state below has its own centered Add Scanner call to action. -->
+      <Grid DockPanel.Dock="Bottom" ColumnDefinitions="Auto,*,Auto" Margin="0,16,0,0"
+            IsVisible="{Binding HasScanners}">
+        <Button Grid.Column="0" Command="{Binding RefreshCommand}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Text="⟳" />
+            <TextBlock Text="{x:Static s:Strings.RefreshStatusButton}" />
+          </StackPanel>
+        </Button>
+        <Button Grid.Column="2" Content="{x:Static s:Strings.AddScannerButton}" Command="{Binding AddScannerCommand}" Classes="accent" />
+      </Grid>
+
+      <TextBlock DockPanel.Dock="Bottom" Text="{Binding ErrorMessage}"
+                 IsVisible="{Binding HasError}" Foreground="{DynamicResource ThemeDangerBrush}"
+                 TextWrapping="Wrap" Margin="0,10,0,0" />
+
+      <Grid>
+      <!-- Nothing registered yet. -->
+      <StackPanel IsVisible="{Binding IsEmpty}" VerticalAlignment="Center" Spacing="16">
+        <!-- A device glyph with a small "+" badge — not a status dot, just an illustration,
+             so it reuses the same plain icon as the Add Scanner discover list rather than
+             claiming any real state. -->
+        <Grid Width="72" Height="72" HorizontalAlignment="Center">
+          <TextBlock Text="⎙" FontSize="64" Opacity="0.4"
+                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+          <Border Width="24" Height="24" CornerRadius="12" Background="{DynamicResource ThemeAccentBrush}"
+                  HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <TextBlock Text="+" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource ThemeAccentTextBrush}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+        </Grid>
+
+        <TextBlock Text="{x:Static s:Strings.NoScannersHeadline}" FontSize="15" FontWeight="SemiBold"
+                   HorizontalAlignment="Center" />
+        <TextBlock Text="{x:Static s:Strings.NoScannersSubtext}"
+                   Opacity="0.7" FontSize="13" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="380" />
+
+        <Button Content="{x:Static s:Strings.AddScannerEmptyStateButton}" Command="{Binding AddScannerCommand}"
+                Classes="accent" HorizontalAlignment="Center" Padding="20,10" Margin="0,6,0,0" />
+      </StackPanel>
+
+      <ScrollViewer IsVisible="{Binding HasScanners}">
+        <ItemsControl ItemsSource="{Binding Scanners}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate><StackPanel Spacing="8" /></ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <!-- The default scanner's whole row is highlighted (not just a text badge) —
+                   that plus the filled star below are the only "this is the default" cues. -->
+              <Border BorderThickness="1" BorderBrush="{DynamicResource ThemeBorderStrongBrush}" CornerRadius="6" Padding="14,12"
+                      Background="{Binding IsDefault, Converter={x:Static local:Converters.DefaultToRowHighlight}}">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                  <!-- Filled when ready, an outline-only ring when not — not just two fill
+                       colors — so reachability reads at a glance even for someone who can't
+                       tell the two colors apart. -->
+                  <Ellipse Grid.Column="0" Width="{DynamicResource ThemeStatusDotSize}" Height="{DynamicResource ThemeStatusDotSize}" VerticalAlignment="Center"
+                           Margin="0,0,12,0"
+                           Fill="{Binding IsReady, Converter={x:Static local:Converters.ReadyToFillOrTransparent}}"
+                           Stroke="{DynamicResource ThemeBorderStrongBrush}" StrokeThickness="1.5" />
+
+                  <StackPanel Grid.Column="1" Spacing="2">
+                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding StatusText}" FontSize="12" Opacity="0.65" />
+                  </StackPanel>
+
+                  <!-- Make-default toggle, as an icon instead of a text button — the glyph
+                       itself (filled vs. outline star) carries the "is this the default"
+                       state, so it doubles as the indicator the old text badge used to be.
+                       Left enabled even once already default (clicking it again is a
+                       harmless no-op) rather than disabled — a disabled button fades to 40%
+                       opacity app-wide, which would wash out exactly the row that should
+                       look most prominent. -->
+                  <Button Grid.Column="2" Classes="linklike" FontSize="14"
+                          Content="{Binding IsDefault, Converter={x:Static local:Converters.DefaultToStarGlyph}}"
+                          ToolTip.Tip="{x:Static s:Strings.MakeDefaultButton}"
+                          Click="OnMakeDefault" Tag="{Binding DriverId}"
+                          Margin="0,0,6,0" />
+                  <Button Grid.Column="3" Classes="linklike" FontSize="14" Content="🗑"
+                          ToolTip.Tip="{x:Static s:Strings.RemoveButton}"
+                          Click="OnRemove" Tag="{Binding DriverId}" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </ScrollViewer>
+      </Grid>
+    </DockPanel>
+  </DockPanel>
+  </Border>
+</Window>
