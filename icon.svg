@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>KRocket Document Scanner</title>
+  <path d="M320 160H576L768 352V800a64 64 0 0 1-64 64H320a64 64 0 0 1-64-64V224a64 64 0 0 1 64-64Z" fill="#E6F4F5" stroke="#0B6A73" stroke-width="64" stroke-linejoin="round"/>
+  <path d="M576 160V272a80 80 0 0 0 80 80H768Z" fill="#1FA5B1" stroke="#0B6A73" stroke-width="32" stroke-linejoin="round"/>
+  <rect x="320" y="256" width="192" height="48" rx="24" fill="#5DB8C1"/>
+  <rect x="320" y="352" width="256" height="48" rx="24" fill="#5DB8C1"/>
+  <rect x="320" y="640" width="320" height="48" rx="24" fill="#5DB8C1"/>
+  <rect x="320" y="736" width="192" height="48" rx="24" fill="#5DB8C1"/>
+  <rect x="128" y="464" width="768" height="96" rx="48" fill="#2FC4CF" stroke="#0B6A73" stroke-width="32"/>
+</svg>
