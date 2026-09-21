@@ -19,13 +19,6 @@ as a PDF, PNG or JPEG. It is a small utility and is meant to look and feel like 
 - Supports a flatbed and a document feeder. Feeder scanning has not been tested on a real scanner yet.
 - Keeps all scanned pages in a list, where you can move or remove them before saving.
 - Saves the pages as one PDF file, or as PNG or JPEG images.
-- Speaks English and French. It follows the language of your system.
-
-## Who it is for
-
-Anyone on Linux who wants to scan a document without a large program. It works with scanners that your
-system supports through SANE, and with network scanners that use AirScan (eSCL), which includes many
-scanners built into printers.
 
 ## Requirements
 
@@ -35,15 +28,18 @@ scanners built into printers.
 - fontconfig and the basic X11 libraries.
 - The [.NET 10 SDK](https://dotnet.microsoft.com/download), to build and run it from source.
 
-On Linux (tested on Ubuntu) you can install everything with:
+
+## To Build and run
+
+1. Checkout project
+
+2. install dependencies with:
 
 ```console
-./scripts/install-dependencies.sh
+sudo ./scripts/install-dependencies.sh
 ```
 
-The script needs `sudo` and does not build or install the app itself.
-
-## Build and run
+3. Build & Run
 
 ```console
 dotnet build

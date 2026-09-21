@@ -42,6 +42,13 @@ modules:
         tag: 1.4.0
         commit: c7e4b5e35e3d614d2b1181d760a717bfc395a203
 
+  - name: libevent
+    sources:
+      - type: git
+        url: https://github.com/libevent/libevent.git
+        tag: release-2.1.12-stable
+        commit: 5df3037d10556bfcb675bc73e516978b75fc7bc7
+
   - name: avahi
     cleanup:
       - /bin
