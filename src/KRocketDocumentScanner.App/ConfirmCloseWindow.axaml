@@ -13,8 +13,6 @@
           BorderBrush="{DynamicResource ThemeBorderStrongBrush}">
   <DockPanel>
 
-    <!-- Fixed-size utility dialog: close only (same as pressing Cancel), no minimize/
-         maximize — same treatment as ScannerUnavailableWindow/ManageScannersWindow. -->
     <Border Name="HeaderBorder" DockPanel.Dock="Top" Padding="16,10" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource ThemeBorderBrush}"
             Background="Transparent"
             IsVisible="{x:Static local:AppOptions.ShowCustomChrome}"
@@ -30,7 +28,6 @@
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
                 Spacing="14" MaxWidth="360" Margin="32">
       <TextBlock Name="MessageText" TextWrapping="Wrap" TextAlignment="Center" Opacity="0.8" />
-      <!-- Cancel is the desired action: right, primary colour. Close Anyway is the plain one on the left. -->
       <Grid ColumnDefinitions="Auto,*,Auto" MinWidth="280">
         <Button Grid.Column="0" Name="DiscardButton" Content="{x:Static s:Strings.DiscardAndCloseButton}" Click="OnDiscard" />
         <Button Grid.Column="2" Content="{x:Static s:Strings.CancelButton}" Click="OnCancel" Classes="accent" />

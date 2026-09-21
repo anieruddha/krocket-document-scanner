@@ -3,8 +3,6 @@ using KRocketDocumentScanner.Core.Models;
 
 namespace KRocketDocumentScanner.Tests.Support;
 
-/// <summary>Scriptable scanner engine: which ids answer, what discovery returns, how long each
-/// call takes. Never touches the network or the disk.</summary>
 public sealed class FakeEngine : IScannerEngine
 {
     public HashSet<string> Reachable { get; } = new(StringComparer.OrdinalIgnoreCase);

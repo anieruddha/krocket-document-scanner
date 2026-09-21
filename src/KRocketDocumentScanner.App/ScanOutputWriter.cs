@@ -3,11 +3,6 @@ using SkiaSharp;
 
 namespace KRocketDocumentScanner.App;
 
-/// <summary>
-/// Writes captured pages to disk as either a multi-page PDF or image file(s).
-/// Uses SkiaSharp's own PDF document support, which is already a dependency via
-/// KRocketDocumentScanner.Imaging — no additional PDF-writing library needed.
-/// </summary>
 public static class ScanOutputWriter
 {
     public static void Save(IReadOnlyList<CapturedPage> pages, string destinationPath, PaperSize? pdfSheet = null)
@@ -50,8 +45,6 @@ public static class ScanOutputWriter
 
         for (int i = 0; i < pages.Count; i++)
         {
-            // Single page keeps the exact filename chosen; multiple pages get numbered
-            // suffixes, since one image file can't hold several pages.
             var path = pages.Count == 1
                 ? destinationPath
                 : Path.Combine(dir, $"{baseName}-{i + 1:D3}{ext}");

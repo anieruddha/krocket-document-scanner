@@ -1,36 +1,6 @@
 #!/usr/bin/env bash
-###############################################################################
-# install-dependencies.sh
-#
-# Installs everything needed to build and run KRocketDocumentScanner:
-#   - .NET 10 SDK
-#   - SANE (scanner backend/utilities, needed by NAPS2.Sdk at runtime)
-#   - sane-airscan (SANE backend for network scanners that speak AirScan/eSCL —
-#     the app lists and uses these through SANE)
-#   - avahi + mDNS name lookup (network scanner discovery, and resolving
-#     names like printer.local)
-#   - fontconfig and the basic X11 libraries (Avalonia/SkiaSharp text and windows)
-#
-# The tests (tests/KRocketDocumentScanner.Tests) need nothing beyond the .NET SDK and network
-# access to nuget.org to restore packages; the hardware tests need a scanner.
-#
-# Detects the host Linux distribution and uses the appropriate package
-# manager: apt (Debian/Ubuntu-family) or dnf (Fedora/RHEL-family). This is
-# strictly a dependency installer — it does NOT build, package, or install
-# KRocketDocumentScanner itself.
-#
-# Usage:
-#   ./install-dependencies.sh
-#
-# Must be run with sudo privileges available (the script calls `sudo`
-# itself for package-manager commands; you don't need to prefix the whole
-# script with sudo).
-###############################################################################
 set -euo pipefail
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$1"; }
 warn() { printf '\033[1;33m==> WARNING:\033[0m %s\n' "$1" >&2; }
 die()  {
@@ -48,15 +18,11 @@ require_sudo() {
     fi
 }
 
-# ---------------------------------------------------------------------------
-# Step 1: Detect distro family and package manager
-# ---------------------------------------------------------------------------
 detect_package_manager() {
     if [ ! -f /etc/os-release ]; then
         die "Could not find /etc/os-release, so the Linux distribution couldn't be detected. This script only supports apt-based (Debian/Ubuntu) and dnf-based (Fedora/RHEL) systems."
     fi
 
-    # shellcheck source=/dev/null
     . /etc/os-release
     local id="${ID:-unknown}"
     local id_like="${ID_LIKE:-}"
@@ -70,17 +36,9 @@ detect_package_manager() {
     fi
 }
 
-# ---------------------------------------------------------------------------
-# Step 2: Install .NET SDK
-# ---------------------------------------------------------------------------
 install_dotnet_apt() {
     log "Installing .NET 10 SDK via apt..."
 
-    # Don't treat `apt-get update` failures as fatal: a single broken third-party repo
-    # (a stray PPA, an expired signing key, etc.) makes `apt-get update` exit non-zero
-    # even though every OTHER configured repository updated fine. The package we need
-    # may still be perfectly installable from those, so we warn and continue rather
-    # than jumping straight to the fallback installer over an unrelated repo's problem.
     if ! $SUDO apt-get update -qq; then
         warn "apt-get update reported errors (often caused by an unrelated third-party repository, not the ones we need) — continuing anyway."
     fi
@@ -123,9 +81,6 @@ install_dotnet_via_official_script() {
     export PATH="$PATH:$HOME/.dotnet"
 }
 
-# ---------------------------------------------------------------------------
-# Step 3: Install SANE (scanner backend — used by NAPS2.Sdk) and fontconfig
-# ---------------------------------------------------------------------------
 install_other_deps_apt() {
     log "Installing SANE, AirScan, avahi/mDNS, fontconfig and X11 libraries via apt..."
     $SUDO apt-get install -y \
@@ -144,9 +99,6 @@ install_other_deps_dnf() {
         || die "Failed to install the scanner/font/X11 packages via dnf. See the output above."
 }
 
-# ---------------------------------------------------------------------------
-# Step 4: Verify
-# ---------------------------------------------------------------------------
 verify_installation() {
     log "Verifying installation..."
 
@@ -168,8 +120,6 @@ verify_installation() {
         warn "scanimage (SANE utilities) doesn't seem to be on PATH — scanning may not work until this is resolved."
     fi
 
-    # Network scanner discovery goes through avahi (mDNS). The package normally starts it,
-    # but this script does not change any service settings, so just report the state.
     if command -v systemctl >/dev/null 2>&1; then
         if systemctl is-active --quiet avahi-daemon 2>/dev/null; then
             log "avahi-daemon: running"
@@ -179,9 +129,6 @@ verify_installation() {
     fi
 }
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 main() {
     log "KRocketDocumentScanner dependency installer"
 

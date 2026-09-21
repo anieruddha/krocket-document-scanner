@@ -5,12 +5,6 @@ using KRocketDocumentScanner.Core.Models;
 
 namespace KRocketDocumentScanner.App;
 
-/// <summary>
-/// The small status icon shown next to a scanner's name. Three looks, so the state is clear
-/// without colour alone: a green circle with a check mark (available), a red circle with a
-/// cross (checked, not available), and a hollow grey ring (not checked / unknown). The colours
-/// come from the theme (ThemeReadyBrush, ThemeDangerBrush, ThemeNotReadyBrush).
-/// </summary>
 public sealed class ScannerStatusIcon : Control
 {
     private const double IconSize = 14;
@@ -57,7 +51,6 @@ public sealed class ScannerStatusIcon : Control
         }
     }
 
-    // Looked up when drawing, so it follows whatever theme AppTheme applied.
     private static IBrush ThemeBrush(string key) =>
         Application.Current?.FindResource(key) as IBrush ?? Brushes.Gray;
 }

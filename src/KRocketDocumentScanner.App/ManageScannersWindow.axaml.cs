@@ -40,8 +40,6 @@ public partial class ManageScannersWindow : Window
             await _vm.RemoveAsync(driverId);
     }
 
-    // Fixed-size dialog: only Close, no minimize/maximize (see AppOptions/ScanWindow's fuller
-    // chrome for the windows that actually need those).
     private void OnToolbarPointerPressed(object? sender, PointerPressedEventArgs e) =>
         this.OnHeaderPointerPressed(e, supportsMaximizeToggle: false);
 

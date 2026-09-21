@@ -9,7 +9,6 @@ namespace KRocketDocumentScanner.Tests.Functional;
 [Trait("Category", "Functional")]
 public class AddressAndCodecTests
 {
-    // ---------------- address / device id extraction ----------------
     [Theory]
     [InlineData("airscan:ip=192.0.2.10", "192.0.2.10")]
     [InlineData("escl:https://192.0.2.10:443", "192.0.2.10")]
@@ -29,7 +28,6 @@ public class AddressAndCodecTests
     public void Device_id_is_extracted_and_lowercased(string text, string? expected) =>
         Assert.Equal(expected, ScannerAddressExtractor.ExtractDeviceId(text));
 
-    // ---------------- manual address validation ----------------
     [Theory]
     [InlineData("192.0.2.211")]
     [InlineData("scanner.local")]
@@ -55,7 +53,6 @@ public class AddressAndCodecTests
     public void Invalid_manual_addresses_are_rejected(string address) =>
         Assert.False(AddScannerViewModel.IsValidManualAddress(address));
 
-    // ---------------- display name cleanup ----------------
     [Theory]
     [InlineData("Model X Series (escl:https://192.0.2.10:443)", "Model X Series")]
     [InlineData("Model X Series (airscan:ip=192.0.2.10)", "Model X Series")]
@@ -65,7 +62,6 @@ public class AddressAndCodecTests
     public void Protocol_suffixes_are_stripped_from_display_names(string raw, string expected) =>
         Assert.Equal(expected, new ScannerRegistryEntry { DriverId = "x", DisplayName = raw }.DisplayName);
 
-    // ---------------- device id codec ----------------
     [Fact]
     public void Encoded_devices_decode_to_the_same_device()
     {

@@ -1,8 +1,5 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-  <!-- The application banner (page symbol and name), drawn from banner.svg: the text is already
-       shapes, so no font is needed. The colours are the artwork's own. The first drawing only
-       fixes the image bounds to the artwork's outline. -->
   <DrawingImage x:Key="AppBanner">
     <DrawingGroup>
       <GeometryDrawing Brush="Transparent" Geometry="M112,128 H2396 V896 H112 Z" />

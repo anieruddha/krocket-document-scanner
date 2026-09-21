@@ -5,11 +5,6 @@ using KRocketDocumentScanner.Core.Models;
 
 namespace KRocketDocumentScanner.Core.Registry;
 
-/// <summary>
-/// Persists the scanner registry as a JSON file under the user's XDG config directory
-/// (~/.config/krocketdocumentscanner/scanners.json, respecting $XDG_CONFIG_HOME if set). Writes are
-/// atomic (write-to-temp-then-move) so a crash mid-save can't corrupt the file.
-/// </summary>
 public sealed class JsonScannerRegistryStore : IScannerRegistryStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -50,9 +45,6 @@ public sealed class JsonScannerRegistryStore : IScannerRegistryStore
         var dir = Path.GetDirectoryName(_filePath)!;
         Directory.CreateDirectory(dir);
 
-        // Atomic write: serialize to a temp file in the same directory, then move it into
-        // place. A move within the same filesystem is atomic, so a crash/power-loss mid-write
-        // leaves either the old file or the new one intact, never a half-written registry.
         var tempPath = Path.Combine(dir, $".scanners.json.{Guid.NewGuid():N}.tmp");
         await using (var stream = File.Create(tempPath))
         {

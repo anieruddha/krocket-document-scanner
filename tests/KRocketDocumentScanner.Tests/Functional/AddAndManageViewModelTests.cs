@@ -21,7 +21,6 @@ public class AddAndManageViewModelTests
 
     private sealed class Counter { public int Count; }
 
-    // ---------------- Discover tab grouping ----------------
     [Fact]
     public void AirScan_and_eSCL_reports_of_one_device_become_one_card_with_two_connections()
     {
@@ -33,9 +32,9 @@ public class AddAndManageViewModelTests
 
         var card = Assert.Single(groups);
         Assert.Equal(2, card.Connections.Count);
-        Assert.Equal(Strings.AirScanLabel, card.Connections[0].Label);   // AirScan is offered first
+        Assert.Equal(Strings.AirScanLabel, card.Connections[0].Label);
         Assert.Equal(Strings.EsclLabel, card.Connections[1].Label);
-        Assert.True(card.IsChecked);                                      // fresh cards start checked
+        Assert.True(card.IsChecked);
     }
 
     [Fact]
@@ -104,13 +103,12 @@ public class AddAndManageViewModelTests
         await registry.AddManualAsync("usb:1", "Mine", null);
         engine.Discoverable.Add(new DiscoveredScanner("usb:1", "C", "Three"));
         await vm.DiscoverCommand.ExecuteAsync();
-        Assert.Single(vm.Found);                       // registered scanners are listed
+        Assert.Single(vm.Found);
         await vm.AddSelectedCommand.ExecuteAsync();
         Assert.Single(registry.Entries);
         Assert.Equal("Mine", registry.Entries[0].DisplayName);
     }
 
-    // ---------------- Manual entry ----------------
     [Fact]
     public async Task Manual_add_is_enabled_by_an_address_alone()
     {
@@ -210,7 +208,6 @@ public class AddAndManageViewModelTests
         Assert.Null(vm.ManualStatusMessage);
     }
 
-    // ---------------- Manage Scanners ----------------
     [Fact]
     public async Task Manage_lists_scanners_marks_the_default_and_only_lets_you_choose_with_several()
     {

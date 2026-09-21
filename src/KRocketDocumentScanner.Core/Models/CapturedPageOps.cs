@@ -1,17 +1,7 @@
 namespace KRocketDocumentScanner.Core.Models;
 
-/// <summary>
-/// Pure pixel-data operations on <see cref="CapturedPage"/>. Kept dependency-free (no imaging
-/// library) so it's directly testable and usable from any layer.
-/// </summary>
 public static class CapturedPageOps
 {
-    /// <summary>
-    /// Crops to the pixel rectangle [left, top, right, bottom) (right/bottom exclusive).
-    /// Used to implement "selectable scan area": the underlying scanning engine doesn't expose
-    /// an arbitrary crop rectangle option directly, so the full page/bed is captured and then
-    /// cropped here to the region the user selected in the preview.
-    /// </summary>
     public static CapturedPage Crop(CapturedPage source, int left, int top, int right, int bottom)
     {
         if (left < 0 || top < 0 || right > source.WidthPx || bottom > source.HeightPx || left >= right || top >= bottom)
@@ -44,7 +34,6 @@ public static class CapturedPageOps
         };
     }
 
-    /// <summary>Same pixels, tagged with the resolution they were captured at.</summary>
     public static CapturedPage WithDpi(CapturedPage source, int dpi) => new()
     {
         WidthPx = source.WidthPx,
@@ -54,11 +43,6 @@ public static class CapturedPageOps
         Dpi = dpi,
     };
 
-    /// <summary>
-    /// Reduces the page to pure black and white with a single automatic (Otsu) threshold: no
-    /// blur, sharpening or other filtering, just a per-pixel black/white decision. Result is
-    /// Grayscale8 containing only 0 and 255.
-    /// </summary>
     public static CapturedPage ToBlackAndWhite(CapturedPage source)
     {
         int count = source.WidthPx * source.HeightPx;
@@ -79,7 +63,6 @@ public static class CapturedPageOps
         var hist = new long[256];
         foreach (var v in lum) hist[v]++;
 
-        // Otsu: the cutoff that maximizes the variance between the dark and light groups.
         double sumAll = 0;
         for (int i = 0; i < 256; i++) sumAll += i * (double)hist[i];
         double sumDark = 0, best = -1;
@@ -109,10 +92,6 @@ public static class CapturedPageOps
         };
     }
 
-    /// <summary>
-    /// Converts a normalized [0,1] selection rectangle (as produced by a preview-image area
-    /// selector UI) into pixel coordinates for a page of the given size, clamped to valid bounds.
-    /// </summary>
     public static (int Left, int Top, int Right, int Bottom) NormalizedToPixelRect(
         double normLeft, double normTop, double normRight, double normBottom, int widthPx, int heightPx)
     {
@@ -121,7 +100,6 @@ public static class CapturedPageOps
         int right = Math.Clamp((int)Math.Round(normRight * widthPx), 0, widthPx);
         int bottom = Math.Clamp((int)Math.Round(normBottom * heightPx), 0, heightPx);
 
-        // Guarantee a non-empty rectangle even from degenerate input (e.g. a zero-size selection).
         if (right <= left) right = Math.Min(left + 1, widthPx);
         if (bottom <= top) bottom = Math.Min(top + 1, heightPx);
 

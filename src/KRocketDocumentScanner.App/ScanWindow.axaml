@@ -13,10 +13,6 @@
           BorderBrush="{DynamicResource ThemeBorderStrongBrush}">
   <DockPanel>
 
-    <!-- Also doubles as this window's own header/title bar. Scanner status now lives here too
-         (picker + manage-scanners gear), grouped with the window buttons on the right, since
-         it's the one thing that should stay visible regardless of scrolling in the Options
-         pane below. Title left-aligned to leave room for that group. -->
     <Border Name="HeaderBorder" DockPanel.Dock="Top" Padding="18,14" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource ThemeBorderBrush}"
             Background="Transparent"
             PointerPressed="OnToolbarPointerPressed">
@@ -25,13 +21,6 @@
                HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="False"
                AutomationProperties.Name="{Binding $parent[Window].Title}" />
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-          <!-- A picker over every saved scanner, the default one selected, switching the
-               active driver immediately on selection. Flattened to a plain chip (no box/
-               border) rather than looking like an ordinary form dropdown. Each row's own
-               status dot (not text) shows available vs. not; reused for the closed box, so
-               the current pick's dot shows even collapsed. The gear icon beside it is the
-               only way left to reach Manage Scanners from this window once a scanner is
-               already selected. -->
           <ComboBox ItemsSource="{Binding ScannerChoices}" SelectedIndex="{Binding ScannerIndex}"
                     PlaceholderText="{x:Static s:Strings.NoScannerSetUpMessage}"
                     HorizontalAlignment="Left" MinHeight="0" Padding="6,4"
@@ -63,30 +52,15 @@
       </Grid>
     </Border>
 
-    <!-- Thin activity bar under the header while the app waits on the scanner. -->
     <ProgressBar DockPanel.Dock="Top" IsIndeterminate="True" Height="3" MinHeight="0"
                  IsVisible="{Binding IsWorking}" />
 
-    <!-- No shared bottom spacer here — unlike Pages (its own Margin) and Options (the Save
-         button's own Padding), the preview pane has no independent bottom spacing of its
-         own, so a shared spacer here only ever showed up as a gap under the preview image
-         specifically. -->
-
-    <!-- Always shows the full Pages/Preview/Options layout, whether or not a scanner is
-         available right now — ScannerUnavailableWindow (a popup, see ScanWindow.axaml.cs)
-         is what tells the user why, on top of this, without replacing it. Disabled as a
-         whole while the scanner is being contacted; the header above (drag region + window
-         buttons) sits outside this Grid, so it stays usable. -->
     <Grid IsEnabled="{Binding !IsBusy}">
 
       <Grid ColumnDefinitions="260,*,300">
 
-      <!-- Options -->
       <DockPanel Grid.Column="2">
 
-        <!-- Save is pinned to the bottom of the pane (not scrolled with the rest) so it
-             always sits flush with the preview pane's own bottom edge, matching the sibling
-             column's height. -->
         <Border DockPanel.Dock="Bottom" Padding="18" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ThemeBorderBrush}">
           <Button Content="{x:Static s:Strings.SaveButton}" Command="{Binding SaveCommand}" Classes="accent"
                   HorizontalAlignment="Stretch" Padding="12,12" FontSize="15" FontWeight="SemiBold" />
@@ -95,8 +69,6 @@
         <ScrollViewer>
         <StackPanel Margin="18" Spacing="16">
 
-          <!-- Only shown when the scanner reports more than one real source — a flatbed-only
-               scanner has nothing to pick between, so scanning just always uses the flatbed. -->
           <StackPanel Spacing="6" IsVisible="{Binding ShowSourcePicker}">
             <TextBlock Text="{x:Static s:Strings.SourceLabel}" FontSize="13" Opacity="0.8" />
             <ComboBox ItemsSource="{Binding SourceChoices}"
@@ -121,19 +93,11 @@
                       SelectedIndex="{Binding PagePresetIndex}" HorizontalAlignment="Stretch" />
           </StackPanel>
 
-          <!-- Same visibility as the Source picker just above — both are feeder/batch-scan
-               concepts, meaningless on a flatbed-only scanner. Checked by default; the user
-               can turn either off once shown. -->
           <CheckBox Content="{x:Static s:Strings.AutoDeskewLabel}" IsChecked="{Binding AutoDeskew}"
                     IsVisible="{Binding ShowSourcePicker}" />
           <CheckBox Content="{x:Static s:Strings.SkipBlankPagesLabel}" IsChecked="{Binding DropBlankPages}"
                     IsVisible="{Binding ShowSourcePicker}" />
 
-          <!-- Crop settings are opt-in, not always shown — most users never touch them.
-               Collapsed by default: just this header row. Expanding it inserts the settings
-               right below, in the normal flow of this list (it used to float over the
-               preview image instead; moved here so it doesn't cost the preview any space and
-               everything scan-related lives in one place). -->
           <StackPanel Spacing="0" IsVisible="{Binding HasPreview}">
             <Button Name="CropPanelToggle" Classes="panelheader" Click="OnToggleCropPanel">
               <Grid ColumnDefinitions="*,Auto">
@@ -183,21 +147,11 @@
         </ScrollViewer>
       </DockPanel>
 
-      <!-- Preview area: a custom-drawn control with a draggable/resizable crop selection,
-           not a plain Image — this is the scan-area selector, wired to
-           ScanViewModel.SetSelectedArea via the SelectionChanged event below. Crop settings
-           now live in the Options column (a collapsible "Crop" section), not overlaid here —
-           this pane is just the image, full width. -->
       <Border Grid.Column="1" Background="{DynamicResource ThemeSurfaceSubtleBrush}" BorderThickness="1,0"
               BorderBrush="{DynamicResource ThemeBorderBrush}">
-        <!-- Top/bottom breathing room around the previewed image itself, so it doesn't run
-             flush to the pane's own edges — the pane's outer Border stays flush to the
-             window (no shared spacer), this margin is scoped to the image only. -->
         <local:ScanAreaSelector Name="AreaSelector" SelectionChanged="OnAreaSelectionChanged" Margin="0,16" />
       </Border>
 
-      <!-- Captured pages. Shown large enough to actually identify the page,
-           not a cramped thumbnail strip. -->
       <DockPanel Grid.Column="0" Margin="14">
         <TextBlock DockPanel.Dock="Top" Text="{x:Static s:Strings.PagesHeading}" FontWeight="SemiBold"
                    Margin="0,0,0,10" />
@@ -205,8 +159,6 @@
                    Text="{x:Static s:Strings.NoPagesYet}" Opacity="0.6" FontSize="12"
                    TextWrapping="Wrap" />
 
-        <!-- Sticky footer: the Scan/Preview status message, moved here from the Options
-             pane — pinned below the pages list (not scrolled with it). -->
         <Border DockPanel.Dock="Bottom" IsVisible="{Binding HasStatusMessage}"
                 Margin="0,10,0,0" Padding="0,10,0,0"
                 BorderThickness="0,1,0,0" BorderBrush="{DynamicResource ThemeBorderBrush}">

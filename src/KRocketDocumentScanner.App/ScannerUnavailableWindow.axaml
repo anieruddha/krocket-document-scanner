@@ -13,8 +13,6 @@
           BorderBrush="{DynamicResource ThemeBorderStrongBrush}">
   <DockPanel>
 
-    <!-- Fixed-size utility dialog: close only, no minimize/maximize — same treatment as
-         ManageScannersWindow/AddScannerWindow (§9.5). -->
     <Border Name="HeaderBorder" DockPanel.Dock="Top" Padding="16,10" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource ThemeBorderBrush}"
             Background="Transparent"
             IsVisible="{x:Static local:AppOptions.ShowCustomChrome}"

@@ -4,12 +4,6 @@ using KRocketDocumentScanner.Core.Models;
 
 namespace KRocketDocumentScanner.Core.Registry;
 
-/// <summary>
-/// Appends every network-activity record to a local, human-readable JSON-lines file
-/// (~/.config/krocketdocumentscanner/network-activity.log, respecting $XDG_CONFIG_HOME) — one JSON object per
-/// line, so it can be inspected with nothing more than a text editor or `cat`, or piped through
-/// `jq` for filtering. This file records activity; it never transmits it anywhere.
-/// </summary>
 public sealed class FileNetworkActivityLog : INetworkActivityLog
 {
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
@@ -37,9 +31,6 @@ public sealed class FileNetworkActivityLog : INetworkActivityLog
 
         var line = JsonSerializer.Serialize(entry, JsonOptions);
 
-        // Serialize concurrent writers (multiple log calls could in principle race) with a
-        // simple in-process lock — appends are small and infrequent, so this is never a
-        // bottleneck, and it guarantees each line is written whole, never interleaved.
         await _writeLock.WaitAsync(ct).ConfigureAwait(false);
         try
         {

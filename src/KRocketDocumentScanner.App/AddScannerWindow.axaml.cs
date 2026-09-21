@@ -20,8 +20,6 @@ public partial class AddScannerWindow : Window
             Close);
         DataContext = _vm;
 
-        // Start discovery as soon as the dialog opens, rather than waiting for a click on the
-        // Search button (which stays available for re-scanning).
         Opened += (_, _) => _vm.DiscoverCommand.Execute(null);
 
         var header = this.FindControl<Border>("HeaderBorder");
@@ -30,7 +28,6 @@ public partial class AddScannerWindow : Window
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
-    // Fixed-size dialog: only Close, no minimize/maximize (see AppOptions).
     private void OnToolbarPointerPressed(object? sender, PointerPressedEventArgs e) =>
         this.OnHeaderPointerPressed(e, supportsMaximizeToggle: false);
 

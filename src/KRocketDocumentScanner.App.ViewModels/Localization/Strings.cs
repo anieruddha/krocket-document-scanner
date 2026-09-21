@@ -2,31 +2,17 @@ using System.Text.Json;
 
 namespace KRocketDocumentScanner.App.ViewModels.Localization;
 
-/// <summary>
-/// Every user-facing display string in the app, as mutable static properties loaded from an
-/// external JSON file (strings.en.json) — same pattern as Theming/AppTheme.cs, and for the
-/// same reason: i18n support without a rebuild. Add a strings.&lt;code&gt;.json file and point
-/// <see cref="Load"/> at it (a language-selection UI is a reasonable next step; for now the
-/// language file to load is fixed to English, see Load()).
-///
-/// XAML references these via {x:Static local:Strings.SomePropertyName}, which reads whatever
-/// value is current at the moment that XAML element is constructed — so Load() must run
-/// before any window is created (see App.axaml.cs), same ordering requirement as AppTheme.
-/// </summary>
 public static class Strings
 {
-    // ---- Custom window chrome (see AppOptions) ----
     public static string MinimizeTooltip { get; set; } = "Minimize";
     public static string MaximizeTooltip { get; set; } = "Maximize";
     public static string CloseTooltip { get; set; } = "Close";
 
     public static string SaveScanDialogTitle { get; set; } = "Save scan";
 
-    // ---- Second launch ----
     public static string AlreadyRunningMessage { get; set; } = "KRocketDocumentScanner is already running.";
     public static string AlreadyRunningManageMessage { get; set; } = "KRocketDocumentScanner is already running, so Manage Scanners can't open on its own. Close KRocketDocumentScanner and try again.";
 
-    // ---- Scan window ----
     public static string ScanWindowTitle { get; set; } = "Scan";
     public static string SaveButton { get; set; } = "Save…";
     public static string ScannerUnavailableHeadline { get; set; } = "Scanner not available";
@@ -67,7 +53,6 @@ public static class Strings
     public static string PageCountZero { get; set; } = "{0} pages";
     public static string PageCountOne { get; set; } = "{0} page";
     public static string PageCountMany { get; set; } = "{0} pages";
-    /// <summary>"1 page" / "3 pages" — for messages that mention a number of pages.</summary>
     public static string Pages(int count) =>
         string.Format(count == 0 ? PageCountZero : count == 1 ? PageCountOne : PageCountMany, count);
     public static string ScannedProgressStatus { get; set; } = "Scanned {0}…";
@@ -107,7 +92,6 @@ public static class Strings
     public static string ColorModeBlackAndWhite { get; set; } = "Black & white";
     public static string ColorModeBlackAndWhiteClean { get; set; } = "Black & white (clean)";
 
-    // ---- Manage scanners window ----
     public static string ManageScannersTitle { get; set; } = "Manage Scanners";
     public static string RefreshStatusButton { get; set; } = "Refresh status";
     public static string AddScannerButton { get; set; } = "Add scanner…";
@@ -120,7 +104,6 @@ public static class Strings
     public static string NotReachableStatus { get; set; } = "Not reachable";
     public static string UnknownStatus { get; set; } = "Unknown";
 
-    // ---- Add scanner window ----
     public static string AddScannerTitle { get; set; } = "Add scanner";
     public static string DiscoverTab { get; set; } = "Search network";
     public static string ManualEntryTab { get; set; } = "Add manually";
@@ -137,11 +120,6 @@ public static class Strings
     public static string AirScanLabel { get; set; } = "AirScan";
     public static string EsclLabel { get; set; } = "eSCL";
 
-    /// <summary>Loads English first, then a translation on top. The translation is the language
-    /// asked for (the <c>--lang</c> startup option, e.g. "fr" or "fr-CA") if a file for it
-    /// exists, otherwise the operating system's language (strings.fr.json for French, and so
-    /// on). A key missing from the translation keeps its English text, and no file for the
-    /// language means English.</summary>
     public static void Load(string? requestedLanguage = null)
     {
         var dir = Path.Combine(AppContext.BaseDirectory, "Localization");
@@ -164,8 +142,6 @@ public static class Strings
             LoadFile(Path.Combine(dir, $"strings.{language}.json"));
     }
 
-    /// <summary>"fr", "fr-CA" or "fr_CA" become "fr". Anything that is not two or three letters
-    /// gives null, so the value can never be used to reach another folder.</summary>
     private static string? LanguageCode(string? value)
     {
         if (string.IsNullOrWhiteSpace(value)) return null;
@@ -178,8 +154,6 @@ public static class Strings
         try
         {
             var json = File.ReadAllText(path);
-            // The file is split into groups (errors, status, tooltips, then one per window) for readability;
-            // the group names are not used, each key still maps to the property of that name.
             var groups = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, string>>>(json,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             if (groups is null) return;
@@ -194,8 +168,6 @@ public static class Strings
         }
         catch
         {
-            // Missing/corrupt strings file must never prevent startup — the defaults above
-            // (English) are used as-is.
         }
     }
 }

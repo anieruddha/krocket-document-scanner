@@ -27,7 +27,6 @@ public class ScanViewModelTests
         return (vm, registry, engine);
     }
 
-    // ---------------- readiness gating ----------------
     [Fact]
     public async Task Preview_and_scan_are_locked_until_the_scanner_check_passes()
     {
@@ -111,7 +110,6 @@ public class ScanViewModelTests
         public IAsyncEnumerable<CapturedPage> ScanBatchAsync(string driverId, ScanOptions options, CancellationToken ct = default) => throw new InvalidOperationException();
     }
 
-    // ---------------- preview / scan flow ----------------
     [Fact]
     public async Task Preview_then_scan_adds_a_page_and_clears_the_preview()
     {
@@ -162,7 +160,6 @@ public class ScanViewModelTests
         Assert.NotNull(engine.LastScanOptions?.Area);
     }
 
-    // ---------------- presets ----------------
     [Fact]
     public void Custom_is_the_last_preset_and_the_default_choice()
     {
@@ -181,14 +178,13 @@ public class ScanViewModelTests
         Assert.True(vm.IsCustomPreset);
     }
 
-    // ---------------- changing scanner ----------------
     [Fact]
     public async Task Picking_another_scanner_resets_the_preview_but_keeps_scanned_pages()
     {
         var (vm, _, _) = await ReadyAsync();
         await vm.PreviewCommand.ExecuteAsync();
-        await vm.ScanCommand.ExecuteAsync();      // one page kept
-        await vm.PreviewCommand.ExecuteAsync();   // a fresh preview
+        await vm.ScanCommand.ExecuteAsync();
+        await vm.PreviewCommand.ExecuteAsync();
         Assert.True(vm.HasPreview);
 
         vm.ScannerIndex = 1;
@@ -214,7 +210,7 @@ public class ScanViewModelTests
         await vm.PreviewCommand.ExecuteAsync();
         Assert.True(vm.HasPreview);
 
-        await registry.RemoveAsync(One);   // the scanner this window uses
+        await registry.RemoveAsync(One);
         await Make.EventuallyAsync(() => vm.ScannerName == "Second");
         Assert.False(vm.HasPreview);
         await Make.EventuallyAsync(() => vm.State == ScanScreenState.Ready);
@@ -239,7 +235,7 @@ public class ScanViewModelTests
         await registry.RemoveAsync(One);
         await registry.AddManualAsync(One, "First again", null);
         await Make.EventuallyAsync(() => !vm.HasPreview);
-        Assert.Equal("Second", vm.ScannerName);   // the default at that moment, not the re-added one
+        Assert.Equal("Second", vm.ScannerName);
     }
 
     [Fact]
@@ -249,14 +245,14 @@ public class ScanViewModelTests
         await vm.PreviewCommand.ExecuteAsync();
         engine.Reachable.Add(OneEscl);
         await registry.AddFromDiscoveryAsync(new DiscoveredScanner(OneEscl, "E", "M (escl:https://192.0.2.10:443)"));
-        Assert.Equal(2, registry.Entries.Count);       // updated in place, no new entry
+        Assert.Equal(2, registry.Entries.Count);
 
         await Make.EventuallyAsync(() => registry.Entries[0].DriverId == OneEscl);
         await Task.Delay(100);
-        Assert.True(vm.HasPreview);                     // nothing reset
+        Assert.True(vm.HasPreview);
         Assert.Equal("First", vm.ScannerName);
         await vm.ScanCommand.ExecuteAsync();
-        Assert.Equal(OneEscl, engine.LastDriverId);     // scanning now uses the new connection
+        Assert.Equal(OneEscl, engine.LastDriverId);
     }
 
     [Fact]
@@ -271,13 +267,12 @@ public class ScanViewModelTests
         Assert.Equal("First", vm.ScannerName);
     }
 
-    // ---------------- dropdown dots ----------------
     [Fact]
     public async Task Dropdown_dots_follow_the_registry_and_the_windows_own_check()
     {
         var (registry, engine, _) = await Make.RegistryAsync(new[] { One }, Make.Entry(One, "First"), Make.Entry(Two, "Second"));
         var vm = NewVm(engine, registry, One);
-        Assert.All(vm.ScannerChoices, c => Assert.False(c.IsReady));   // nothing known yet
+        Assert.All(vm.ScannerChoices, c => Assert.False(c.IsReady));
 
         await registry.LoadAndRefreshAsync();
         await Make.EventuallyAsync(() => vm.ScannerChoices[0].IsReady);
@@ -300,7 +295,6 @@ public class ScanViewModelTests
         Assert.False(vm.IsReady);
     }
 
-    // ---------------- refresh button ----------------
     [Fact]
     public async Task Refresh_rechecks_scanners_and_keeps_the_current_one_and_its_preview()
     {
@@ -320,7 +314,7 @@ public class ScanViewModelTests
         await vm.InitializeAsync();
         Assert.Equal(ScanScreenState.ScannerUnavailable, vm.State);
 
-        engine.Reachable.Add(One);                       // now switched on
+        engine.Reachable.Add(One);
         await vm.RefreshScannersCommand.ExecuteAsync();
         Assert.Equal(ScanScreenState.Ready, vm.State);
         Assert.True(vm.PreviewCommand.CanExecute(null));
@@ -332,12 +326,11 @@ public class ScanViewModelTests
         var (registry, engine, _) = await Make.RegistryAsync(new[] { OneEscl }, Make.Entry(One, "First"));
         engine.Discoverable.Add(new DiscoveredScanner(OneEscl, "E", "M (escl:https://192.0.2.10:443)"));
         var vm = NewVm(engine, registry, One);
-        await vm.InitializeAsync();                      // the saved id answers no more, the sibling does
+        await vm.InitializeAsync();
         Assert.Equal(ScanScreenState.Ready, vm.State);
         Assert.Equal(OneEscl, registry.Entries[0].DriverId);
     }
 
-    // ---------------- closing ----------------
     [Fact]
     public async Task Switching_scanner_never_touches_pages_already_scanned()
     {

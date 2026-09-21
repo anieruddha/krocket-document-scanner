@@ -22,7 +22,6 @@ public class ImagingAndInfrastructureTests
         return new CapturedPage { WidthPx = w, HeightPx = h, Format = PixelFormat.Rgb24, PixelData = data };
     }
 
-    // ---------------- cropping ----------------
     [Fact]
     public void Crop_returns_the_requested_pixels()
     {
@@ -50,7 +49,6 @@ public class ImagingAndInfrastructureTests
         Assert.True(r > l && b > t);
     }
 
-    // ---------------- black and white ----------------
     [Fact]
     public void Black_and_white_output_has_only_two_levels_and_keeps_dpi()
     {
@@ -64,7 +62,6 @@ public class ImagingAndInfrastructureTests
         Assert.Equal(300, bw.Dpi);
     }
 
-    // ---------------- PDF page layout ----------------
     private static CapturedPage Blank(int w, int h, int dpi) =>
         new() { WidthPx = w, HeightPx = h, Format = PixelFormat.Grayscale8, PixelData = new byte[w * h], Dpi = dpi };
 
@@ -99,12 +96,10 @@ public class ImagingAndInfrastructureTests
         Assert.True(big.DrawWidth <= 612.01f && big.DrawHeight <= 792.01f);
     }
 
-    // ---------------- presets ----------------
     [Fact]
     public void Known_paper_sizes_are_a4_letter_legal_a5() =>
         Assert.Equal(new[] { "A4", "Letter", "Legal", "A5" }, PaperDetector.KnownSizes.Select(p => p.Name));
 
-    // ---------------- serial executor ----------------
     [Fact]
     public async Task Concurrent_callers_are_all_run_on_one_worker_thread_without_overlap()
     {
@@ -166,7 +161,6 @@ public class ImagingAndInfrastructureTests
         Assert.Equal(7, await executor.RunAsync(_ => Task.FromResult(7)));
     }
 
-    // ---------------- network activity log ----------------
     [Fact]
     public async Task The_activity_log_persists_entries_and_survives_concurrent_writers()
     {

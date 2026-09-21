@@ -10,9 +10,6 @@ using CoreScanOptions = KRocketDocumentScanner.Core.Models.ScanOptions;
 
 namespace KRocketDocumentScanner.Tests.Hardware;
 
-/// <summary>Runs a test against a real, switched-on network scanner. Set KROCKETDOCUMENTSCANNER_SKIP_HARDWARE=1 to skip.
-/// Nothing from the device (name, address, serial, id) is ever written to test output or files:
-/// assertions only say what kind of thing failed.</summary>
 public sealed class HardwareFactAttribute : FactAttribute
 {
     public HardwareFactAttribute()
@@ -36,7 +33,6 @@ public sealed class HardwareFixture : IDisposable
 
     public async Task<IReadOnlyList<DiscoveredScanner>> FoundAsync() => _found ??= await Engine.ListDevicesAsync();
 
-    /// <summary>The first discovered network (eSCL) scanner's connection id, or fails the test with a clear hint.</summary>
     public async Task<DiscoveredScanner> NetworkScannerAsync()
     {
         var found = await FoundAsync();
@@ -114,7 +110,7 @@ public class HardwareScannerTests : IClassFixture<HardwareFixture>
     {
         var scanner = await _hw.NetworkScannerAsync();
         var page = await _hw.Engine.ScanSingleAsync(scanner.DriverId, Small());
-        const double expected = 50 / 25.4 * 75;   // 50 mm at 75 dpi
+        const double expected = 50 / 25.4 * 75;
         Assert.InRange(page.WidthPx, expected * 0.8, expected * 1.2);
         Assert.InRange(page.HeightPx, expected * 0.8, expected * 1.2);
     }
@@ -125,7 +121,6 @@ public class HardwareScannerTests : IClassFixture<HardwareFixture>
     [HardwareFact]
     public async Task The_discovered_connection_carries_an_address_the_app_can_match()
     {
-        // The "same scanner" matching reads an IPv4 address (or a device id) out of the connection.
         var scanner = await _hw.NetworkScannerAsync();
         var host = HostOf(scanner);
         Assert.True(ScannerAddressExtractor.Extract(host) is not null || ScannerAddressExtractor.ExtractDeviceId(scanner.DriverId) is not null,

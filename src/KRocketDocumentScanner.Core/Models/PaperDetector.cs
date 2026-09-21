@@ -1,18 +1,9 @@
 namespace KRocketDocumentScanner.Core.Models;
 
-/// <summary>A recognised standard paper size, in portrait millimeters.</summary>
 public sealed record PaperSize(string Name, double WidthMm, double HeightMm);
 
-/// <summary>Where a sheet of paper was found on a scan of the bed, and which standard size it matches.</summary>
 public sealed record DetectedPaper(PaperSize Size, bool Landscape, int LeftPx, int TopPx, int RightPx, int BottomPx);
 
-/// <summary>
-/// Best-effort guess of what paper is on the scanner bed, from a preview (or full) capture.
-/// Finds the sheet as the region that differs from the bed background (estimated from the
-/// image's own border) and only reports it when its size matches a known paper size — anything
-/// ambiguous returns null, so callers fall back to "free form" rather than a wrong guess. A
-/// white sheet against a white lid is indistinguishable, and correctly yields null.
-/// </summary>
 public static class PaperDetector
 {
     public static readonly IReadOnlyList<PaperSize> KnownSizes = new[]
@@ -23,8 +14,8 @@ public static class PaperDetector
         new PaperSize("A5", 148.0, 210.0),
     };
 
-    private const double SizeTolerance = 0.04;   // ±4% per side
-    private const int DifferenceThreshold = 28;  // luminance levels away from the background
+    private const double SizeTolerance = 0.04;
+    private const int DifferenceThreshold = 28;
     private const int MaxSampleSide = 400;
 
     public static DetectedPaper? Detect(CapturedPage page, int dpi)
@@ -44,7 +35,6 @@ public static class PaperDetector
                     : (byte)((page.PixelData[i] * 299 + page.PixelData[i + 1] * 587 + page.PixelData[i + 2] * 114) / 1000);
             }
 
-        // Background = median of the outermost ring of samples.
         var ring = new List<byte>();
         for (int x = 0; x < gw; x++) { ring.Add(lum[x]); ring.Add(lum[(gh - 1) * gw + x]); }
         for (int y = 0; y < gh; y++) { ring.Add(lum[y * gw]); ring.Add(lum[y * gw + gw - 1]); }
@@ -66,7 +56,6 @@ public static class PaperDetector
         int y1 = Array.FindLastIndex(rowCount, c => c >= maxRow / 2) + 1;
         if (x1 - x0 < 5 || y1 - y0 < 5) return null;
 
-        // A sheet fills its box; scattered noise or stray shadows don't.
         long filled = 0;
         for (int y = y0; y < y1; y++)
             for (int x = x0; x < x1; x++)

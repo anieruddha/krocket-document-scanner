@@ -8,8 +8,6 @@ namespace KRocketDocumentScanner.App;
 
 public partial class ScannerUnavailableWindow : Window
 {
-    // Needed by Avalonia's XAML loader and previewer, which can only create a window with no
-    // arguments; the app itself always uses the constructor below.
     public ScannerUnavailableWindow()
     {
         InitializeComponent();
@@ -26,8 +24,6 @@ public partial class ScannerUnavailableWindow : Window
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
-    // Fixed-size dialog: only Close, no minimize/maximize (see AppOptions/ScanWindow's fuller
-    // chrome for the windows that actually need those).
     private void OnToolbarPointerPressed(object? sender, PointerPressedEventArgs e) =>
         this.OnHeaderPointerPressed(e, supportsMaximizeToggle: false);
 

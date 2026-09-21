@@ -5,7 +5,6 @@ using Xunit;
 
 namespace KRocketDocumentScanner.Tests.Functional;
 
-// Addresses in these tests are documentation-range placeholders (192.0.2.x), never real devices.
 [Trait("Category", "Functional")]
 public class RegistryManagerTests
 {
@@ -15,7 +14,6 @@ public class RegistryManagerTests
     private const string UsbTwo = "usb:two";
     private const string UsbThree = "usb:three";
 
-    // ---------------- default scanner rules ----------------
     [Fact]
     public async Task First_scanner_added_becomes_default()
     {
@@ -41,7 +39,7 @@ public class RegistryManagerTests
         await registry.AddManualAsync(UsbOne, "One", null);
         await registry.AddManualAsync(UsbTwo, "Two", null);
         await registry.AddManualAsync(UsbThree, "Three", null);
-        engine.Reachable.Remove(UsbTwo); // two is offline; three is online
+        engine.Reachable.Remove(UsbTwo);
         await registry.LoadAndRefreshAsync();
 
         await registry.RemoveAsync(UsbOne);
@@ -81,11 +79,11 @@ public class RegistryManagerTests
         store.Saved.DefaultDriverId = null;
         await registry.LoadStoredAsync();
 
-        Assert.Equal(UsbTwo, await registry.EnsureDefaultAsync());   // one is offline, two is online
+        Assert.Equal(UsbTwo, await registry.EnsureDefaultAsync());
         Assert.Equal(UsbTwo, registry.DefaultDriverId);
 
         engine.Reachable.Add(UsbOne);
-        Assert.Equal(UsbTwo, await registry.EnsureDefaultAsync());   // an existing default is left alone
+        Assert.Equal(UsbTwo, await registry.EnsureDefaultAsync());
     }
 
     [Fact]
@@ -95,7 +93,6 @@ public class RegistryManagerTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => registry.SetDefaultAsync("nope"));
     }
 
-    // ---------------- reachability ----------------
     [Fact]
     public async Task A_saved_ready_state_is_not_trusted_on_load()
     {
@@ -114,7 +111,6 @@ public class RegistryManagerTests
         Assert.Equal(ScannerReachability.NotReady, registry.Entries.First(e => e.DriverId == UsbTwo).Reachability);
     }
 
-    // ---------------- discovery ----------------
     [Fact]
     public async Task Discovery_lists_registered_scanners_too()
     {
@@ -133,7 +129,6 @@ public class RegistryManagerTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => registry.DiscoverAvailableAsync());
     }
 
-    // ---------------- same-scanner identity ----------------
     [Fact]
     public async Task Adding_the_same_scanner_over_another_protocol_updates_the_entry()
     {
@@ -147,8 +142,8 @@ public class RegistryManagerTests
         Assert.Single(registry.Entries);
         Assert.Same(first, second);
         Assert.Equal(EsclA, registry.Entries[0].DriverId);
-        Assert.Equal(EsclA, registry.DefaultDriverId);           // default follows the update
-        Assert.Equal(first.DisplayName, second.DisplayName);     // the saved name is kept
+        Assert.Equal(EsclA, registry.DefaultDriverId);
+        Assert.Equal(first.DisplayName, second.DisplayName);
         Assert.Single(repointed);
         Assert.Equal((AirScanA, EsclA), repointed[0]);
     }
@@ -201,7 +196,6 @@ public class RegistryManagerTests
         Assert.Equal(AirScanA, registry.Entries[0].DriverId);
     }
 
-    // ---------------- manual add ----------------
     [Fact]
     public async Task Manual_add_that_must_be_reachable_refuses_and_saves_nothing_when_unreachable()
     {
@@ -220,7 +214,6 @@ public class RegistryManagerTests
         await Assert.ThrowsAsync<ArgumentException>(() => registry.AddManualAsync("x", " ", null));
     }
 
-    // ---------------- recovery ----------------
     [Fact]
     public async Task Refresh_recovers_a_broken_connection_through_a_working_sibling()
     {
@@ -262,7 +255,6 @@ public class RegistryManagerTests
         Assert.Equal(ScannerReachability.NotReady, registry.Entries[0].Reachability);
     }
 
-    // ---------------- events ----------------
     [Fact]
     public async Task Removing_a_scanner_raises_ScannerRemoved_only_when_it_existed()
     {
@@ -277,7 +269,6 @@ public class RegistryManagerTests
         Assert.Equal(new[] { UsbOne }, removed);
     }
 
-    // ---------------- persistence ----------------
     [Fact]
     public async Task The_registry_round_trips_through_the_json_file_and_forgets_reachability()
     {

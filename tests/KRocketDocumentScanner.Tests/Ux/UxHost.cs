@@ -15,15 +15,12 @@ namespace KRocketDocumentScanner.Tests.Ux;
 
 public static class TestAppBuilder
 {
-    // The real application class, rendered without a display. Windows are created from the real XAML.
     public static AppBuilder BuildAvaloniaApp() =>
         AppBuilder.Configure<KRocketDocumentScanner.App.App>().UseHeadless(new AvaloniaHeadlessPlatformOptions());
 }
 
 public static class UxHost
 {
-    /// <summary>Swaps the shared registry the windows read, so no test touches the user's real
-    /// saved scanners.</summary>
     public static void UseRegistry(ScannerRegistryManager registry) =>
         typeof(KRocketDocumentScanner.App.App).GetProperty(nameof(KRocketDocumentScanner.App.App.ScannerRegistry))!.SetValue(null, registry);
 
@@ -52,8 +49,6 @@ public static class UxHost
     public static IEnumerable<string> Texts(Visual root) =>
         All<TextBlock>(root).Where(t => t.IsEffectivelyVisible).Select(t => t.Text ?? "");
 
-    /// <summary>Makes a scan window use a view model built on a fake engine (the window creates
-    /// its own from the real engine, which must never be called from a test).</summary>
     public static ScanViewModel InjectViewModel(ScanWindow window, FakeEngine engine, ScannerRegistryManager registry, string? driverId)
     {
         var vm = new ScanViewModel(engine, registry, driverId, _ => Task.FromResult(false), () => Task.CompletedTask, window.Close);

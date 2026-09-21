@@ -11,7 +11,6 @@ namespace KRocketDocumentScanner.Tests.Ux;
 [Trait("Category", "UX")]
 public class DialogsUxTests
 {
-    // ---------------- close confirmation ----------------
     private static ConfirmCloseWindow Show(int pages = 0, bool busy = false, bool preview = false)
     {
         var w = new ConfirmCloseWindow(pages, busy, preview);
@@ -91,7 +90,6 @@ public class DialogsUxTests
             Assert.True(text.Split(' ').Length <= 25, text);
     }
 
-    // ---------------- scanner unavailable popup ----------------
     [AvaloniaFact]
     public async Task The_unavailable_popup_has_a_single_manage_scanners_button()
     {

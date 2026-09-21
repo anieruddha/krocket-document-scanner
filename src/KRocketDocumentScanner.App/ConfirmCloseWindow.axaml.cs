@@ -6,16 +6,10 @@ using KRocketDocumentScanner.App.ViewModels.Localization;
 
 namespace KRocketDocumentScanner.App;
 
-/// <summary>Asks before discarding unsaved scanned pages — shown from ScanWindow's Closing
-/// handler when the user tries to close with pages still unsaved.</summary>
 public partial class ConfirmCloseWindow : Window
 {
-    /// <summary>True if the user chose "Close Anyway"; false for Cancel or the
-    /// dialog's own × (both mean "don't close").</summary>
     public bool Confirmed { get; private set; }
 
-    // Needed by Avalonia's XAML loader and previewer, which can only create a window with no
-    // arguments; the app itself always uses the constructor below.
     public ConfirmCloseWindow() : this(0)
     {
     }
@@ -53,8 +47,6 @@ public partial class ConfirmCloseWindow : Window
 
     private void OnCancel(object? sender, RoutedEventArgs e) => Close();
 
-    // Fixed-size dialog: only Close, no minimize/maximize (see AppOptions/ScanWindow's fuller
-    // chrome for the windows that actually need those).
     private void OnToolbarPointerPressed(object? sender, PointerPressedEventArgs e) =>
         this.OnHeaderPointerPressed(e, supportsMaximizeToggle: false);
 }

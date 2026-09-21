@@ -13,13 +13,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- External theme config files, copied next to the built exe so they can be hand-edited
-         to reskin the app without recompiling — see Theming/AppTheme.cs. -->
     <Content Include="Theming/theme.light.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Theming/theme.dark.json" CopyToOutputDirectory="PreserveNewest" />
-    <!-- Strings.cs lives in KRocketDocumentScanner.App.ViewModels (needs to be shared with ViewModels, not
-         just this UI project), but the JSON file still needs to end up next to THIS app's
-         exe, since Strings.Load() resolves it via AppContext.BaseDirectory at runtime. -->
     <Content Include="../KRocketDocumentScanner.App.ViewModels/Localization/strings.*.json" Link="Localization/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 

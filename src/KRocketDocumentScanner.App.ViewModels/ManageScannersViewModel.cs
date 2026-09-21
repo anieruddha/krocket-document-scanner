@@ -5,7 +5,6 @@ using KRocketDocumentScanner.Core.Registry;
 
 namespace KRocketDocumentScanner.App.ViewModels;
 
-/// <summary>One row in the Manage Scanners list.</summary>
 public sealed class ScannerRowViewModel : ObservableObject
 {
     public required string DriverId { get; init; }
@@ -15,10 +14,6 @@ public sealed class ScannerRowViewModel : ObservableObject
     public required bool IsDefault { get; init; }
 }
 
-/// <summary>
-/// Drives the Manage Scanners window: the registry list with ready/not-ready status,
-/// set-default, remove, and the entry point to Add Scanner.
-/// </summary>
 public sealed class ManageScannersViewModel : ObservableObject
 {
     private readonly ScannerRegistryManager _registry;
@@ -62,8 +57,6 @@ public sealed class ManageScannersViewModel : ObservableObject
     public AsyncRelayCommand AddScannerCommand { get; }
     public AsyncRelayCommand RefreshCommand { get; }
 
-    /// <summary>True only when there's more than one scanner — "make default" is meaningless
-    /// with a single scanner, which is always already the default.</summary>
     public bool CanChooseDefault => _scanners.Count > 1;
 
     private void Rebuild()

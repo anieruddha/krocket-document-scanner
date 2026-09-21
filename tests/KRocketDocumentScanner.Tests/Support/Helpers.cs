@@ -45,7 +45,6 @@ public static class Make
     public static ScannerRegistryEntry Entry(string driverId, string name = "Test Scanner", string? manualAddress = null) =>
         new() { DriverId = driverId, DisplayName = name, ManualAddress = manualAddress };
 
-    /// <summary>A registry manager on a fake engine, already loaded (no reachability check yet).</summary>
     public static async Task<(ScannerRegistryManager Registry, FakeEngine Engine, MemoryStore Store)> RegistryAsync(
         IEnumerable<string>? reachable = null, params ScannerRegistryEntry[] saved)
     {
@@ -57,7 +56,6 @@ public static class Make
         return (registry, engine, store);
     }
 
-    /// <summary>Polls until the condition holds (for work that is posted to another thread).</summary>
     public static async Task EventuallyAsync(Func<bool> condition, int timeoutMs = 3000)
     {
         var deadline = DateTime.UtcNow.AddMilliseconds(timeoutMs);

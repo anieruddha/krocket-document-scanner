@@ -7,34 +7,10 @@ using KRocketDocumentScanner.Imaging;
 using NAPS2.Images.ImageSharp;
 using NAPS2.Scan;
 using NAPS2.Scan.Exceptions;
-// KRocketDocumentScanner.Core.Models.ScanOptions and NAPS2.Scan.ScanOptions share the same class name —
-// alias ours explicitly rather than relying on unqualified `ScanOptions` to resolve correctly,
-// which would be an ambiguous-reference compile error with both namespaces `using`'d.
 using CoreScanOptions = KRocketDocumentScanner.Core.Models.ScanOptions;
 
 namespace KRocketDocumentScanner.Scanning;
 
-/// <summary>
-/// The real scanning engine, backed by NAPS2.Sdk (which talks to SANE on Linux).
-///
-/// Every single call in this class runs through <see cref="SerialExecutor"/> — this is the
-/// direct, deliberate fix for a prior implementation's crash, where calling into the scanning
-/// library from a fresh ad-hoc thread per UI action corrupted shared state in an underlying
-/// native library (SANE's network backend uses avahi/mDNS for discovery, and avahi's client
-/// isn't safe to drive from multiple threads). It does not matter which thread calls a method
-/// on this class — the actual NAPS2/SANE work always executes on one dedicated thread.
-///
-/// PRIVACY / NETWORK ACTIVITY: this class is the entire network-facing surface of the app.
-/// The only network activity it is capable of, ever, is talking to a scanner — either on the
-/// local SANE bus (which includes USB devices and any network scanner explicitly configured
-/// in the host's own SANE setup), or to a network scanner's own address via the ESCL driver
-/// for manually-added devices (see <see cref="Naps2DeviceIdCodec.EncodeManualEscl"/>). There
-/// is no telemetry, analytics, or reporting of any kind in this class or anywhere else in this
-/// codebase, to any third party, NAPS2's maintainers, or anyone else. Every method below logs what it
-/// did — destination, purpose, and success/failure — to <see cref="INetworkActivityLog"/>
-/// (a local, human-readable file; see <see cref="FileNetworkActivityLog"/>) specifically so
-/// that claim is checkable rather than just asserted.
-/// </summary>
 public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
 {
     private readonly ScanningContext _scanningContext;
@@ -44,23 +20,14 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
 
     public Naps2ScannerEngine(INetworkActivityLog? networkActivityLog = null)
     {
-        // ImageSharpImageContext: a pure-managed image backend (SixLabors.ImageSharp), chosen
-        // over NAPS2.Images.Gtk specifically to avoid pulling a GTK dependency into an Avalonia
-        // (Skia-based) app that has no other reason to need GTK installed.
         _scanningContext = new ScanningContext(new ImageSharpImageContext());
         _controller = new ScanController(_scanningContext);
         _executor = new SerialExecutor("naps2-scan-worker");
-        // Defaults to a local, human-readable log file — see FileNetworkActivityLog. Every
-        // method below that touches the scanner logs what it did here, successful or not.
         _networkActivityLog = networkActivityLog ?? new FileNetworkActivityLog();
     }
 
-    /// <summary>Longest a single discovery, name lookup, reachability or capability call may
-    /// take. Set from the settings file at start-up.</summary>
     public TimeSpan NetworkCallTimeout { get; set; } = SettingsDefaults.NetworkCallTimeout;
 
-    // Gives up on a call after NetworkCallTimeout. WaitAsync is what frees the queue when the
-    // underlying call ignores the token (the device-list calls take none).
     private async Task<T> WithTimeoutAsync<T>(Func<CancellationToken, Task<T>> call, CancellationToken ct)
     {
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
@@ -75,7 +42,6 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
         }
     }
 
-    // ------------------------------------------------------------------ //
     public Task<IReadOnlyList<DiscoveredScanner>> ListDevicesAsync(CancellationToken ct = default)
     {
         return _executor.RunAsync<IReadOnlyList<DiscoveredScanner>>(async innerCt =>
@@ -101,11 +67,6 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
                     detail: ex.Message, innerCt).ConfigureAwait(false);
             }
 
-            // SANE's avahi-based network discovery keeps what it found on its first scan for
-            // the life of the process, so a scanner switched on after the app started is never
-            // seen by it. NAPS2's own ESCL driver sends a fresh mDNS query on every call, so
-            // asking it too is what lets a late-powered scanner appear without a restart.
-            // Its failure must never hide what SANE found, so it is caught on its own.
             try
             {
                 var options = new NAPS2.Scan.ScanOptions { Driver = Driver.Escl };
@@ -124,7 +85,6 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
                     detail: ex.Message, innerCt).ConfigureAwait(false);
             }
 
-            // Both paths failing → surface SANE's error. One failing → show what the other found.
             if (devices.Count == 0 && saneError is not null) throw saneError;
             return devices.Select(ToDiscoveredScanner).ToList();
         }, ct);
@@ -164,20 +124,13 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
             }
             catch (FormatException)
             {
-                return false; // an unrecognized/corrupted id is never "reachable"
+                return false;
             }
 
             try
             {
-                // GetCaps queries the device directly; DeviceException subclasses (offline,
-                // not found, busy, etc.) indicate it's not currently reachable without that
-                // being an application-level error — see the catch below.
                 var caps = await WithTimeoutAsync(t => _controller.GetCaps(device, t), innerCt).ConfigureAwait(false);
 
-                // A host name that doesn't exist (any made-up "something.local") makes NAPS2 wait
-                // about 5 s and then hand back an EMPTY caps object instead of throwing. A real
-                // scanner always reports something (model, paper sources); nothing at all means
-                // nothing answered.
                 bool answered = caps.MetadataCaps is not null || caps.PaperSourceCaps is not null ||
                                 caps.FlatbedCaps is not null || caps.FeederCaps is not null ||
                                 caps.DuplexCaps is not null;
@@ -208,10 +161,6 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
                     DescribeDestination(device), "Scanner capability query", DescribeProtocol(device),
                     success: true, detail: null, innerCt).ConfigureAwait(false);
 
-                // A driver that doesn't report PaperSourceCaps at all is treated as
-                // flatbed-only — every scanner has a flatbed, so that's the safe common
-                // denominator rather than offering feeder/duplex options with nothing behind
-                // them (which would just fail at scan time instead of being hidden up front).
                 var sources = caps.PaperSourceCaps;
                 return new ScannerCapabilities(
                     SupportsFlatbed: sources?.SupportsFlatbed ?? true,
@@ -230,9 +179,6 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
 
     public Task<CapturedPage> PreviewAsync(string driverId, CoreScanOptions options, CancellationToken ct = default)
     {
-        // NAPS2.Sdk has no distinct low-resolution "preview" mode (unlike raw SANE, which some
-        // backends expose via a preview flag) — so a preview here is simply a real scan at a
-        // reduced DPI, which is what NAPS2's own reference app does for the same reason.
         var previewOptions = options with { ResolutionDpi = 100 };
         return ScanSingleAsync(driverId, previewOptions, ct);
     }
@@ -330,7 +276,6 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
             success: true, detail: $"{pageCount} page(s)", ct).ConfigureAwait(false);
     }
 
-    // ------------------------------------------------------------------ //
     private Task LogNetworkActivityAsync(
         string destination, string purpose, string protocol, bool success, string? detail, CancellationToken ct)
     {
@@ -344,23 +289,11 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
     private static string DescribeProtocol(ScanDevice device) =>
         device.Driver == Driver.Escl ? "ESCL (HTTP/HTTPS, local network device only)" : "SANE (local)";
 
-    // ------------------------------------------------------------------ //
-    /// <summary>
-    /// Builds a driverId for a manually-entered network scanner (the "manual entry" half of
-    /// the Add Scanner flow), for use with <see cref="Core.Registry.ScannerRegistryManager.AddManualAsync"/>.
-    /// Connects directly to the given address via the ESCL driver, bypassing SANE/mDNS
-    /// discovery entirely — this is what makes manually adding a network scanner that doesn't
-    /// auto-discover actually work.
-    /// </summary>
     public static string BuildManualNetworkScannerDriverId(string address, string displayName) =>
         Naps2DeviceIdCodec.EncodeManualEscl(address, displayName);
 
-    // ------------------------------------------------------------------ //
     private static DiscoveredScanner ToDiscoveredScanner(ScanDevice device)
     {
-        // ScanDevice.Name is a single vendor+model string (e.g. "Vendor Model") with no
-        // separate fields — split heuristically on the first space rather than overclaiming
-        // precision we don't have.
         var name = device.Name;
         var spaceIndex = name.IndexOf(' ');
         var (vendor, model) = spaceIndex > 0
@@ -382,7 +315,6 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
                 ColorMode.Color => NAPS2.Images.BitDepth.Color,
                 ColorMode.Grayscale => NAPS2.Images.BitDepth.Grayscale,
                 ColorMode.BlackAndWhiteText => NAPS2.Images.BitDepth.BlackAndWhite,
-                // Captured as grayscale on purpose; thresholded afterwards in ToCapturedPageAsync.
                 ColorMode.BlackAndWhiteClean => NAPS2.Images.BitDepth.Grayscale,
                 _ => throw new ArgumentOutOfRangeException(nameof(options), $"Unhandled color mode: {options.ColorMode}"),
             },
@@ -398,15 +330,6 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
         };
     }
 
-    /// <summary>
-    /// Renders a NAPS2 ProcessedImage to our CapturedPage via the shared explicit-color-
-    /// conversion path (see <see cref="ImageConversion"/>) — going through a PNG encode/decode
-    /// step deliberately, rather than reading NAPS2's internal pixel buffer directly, since
-    /// decoding a well-defined file format is itself a safety boundary against exactly the
-    /// class of color-channel bug a prior implementation hit. Also applies the post-scan crop
-    /// for "selectable scan area", since the engine has no native arbitrary-crop-rectangle
-    /// option (see <see cref="Core.Models.CapturedPageOps"/>).
-    /// </summary>
     private async Task<CapturedPage> ToCapturedPageAsync(NAPS2.Images.ProcessedImage image, CoreScanOptions options, CancellationToken ct)
     {
         using var memoryImage = _scanningContext.ImageContext.Render(image);
@@ -418,7 +341,6 @@ public sealed class Naps2ScannerEngine : IScannerEngine, IDisposable
 
         if (options.Area is { } area)
         {
-            // ScanArea is in millimeters; convert to pixels using the DPI we actually requested.
             const double mmPerInch = 25.4;
             double pxPerMm = options.ResolutionDpi / mmPerInch;
             var (left, top, right, bottom) = (

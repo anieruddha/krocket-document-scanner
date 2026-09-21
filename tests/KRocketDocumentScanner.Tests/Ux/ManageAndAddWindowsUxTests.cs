@@ -11,7 +11,6 @@ namespace KRocketDocumentScanner.Tests.Ux;
 [Trait("Category", "UX")]
 public class ManageAndAddWindowsUxTests
 {
-    // ---------------- Manage Scanners ----------------
     private static async Task<(ManageScannersWindow W, ManageScannersViewModel Vm, FakeEngine Engine)> ManageAsync(params string[] ids)
     {
         var (registry, engine, _) = await Make.RegistryAsync(ids, ids.Select(i => Make.Entry(i, "Scanner " + i)).ToArray());
@@ -75,7 +74,6 @@ public class ManageAndAddWindowsUxTests
         w.Close();
     }
 
-    // ---------------- Add Scanner ----------------
     private static async Task<(AddScannerWindow W, AddScannerViewModel Vm, FakeEngine Engine)> AddAsync()
     {
         var (registry, engine, _) = await Make.RegistryAsync();

@@ -17,18 +17,10 @@ public partial class ScanWindow : Window
     private readonly ScanViewModel _vm;
     private ScannerUnavailableWindow? _unavailablePopup;
 
-    // Set right before the window is allowed to actually close without asking — either the
-    // user already confirmed discarding unsaved pages (OnWindowClosing), or ScanViewModel is
-    // closing us itself after a successful Save (CloseAfterSave), where there's nothing left
-    // to lose and asking again would be wrong. Closing (any other path — the × button,
-    // Alt+F4, the window manager) always checks this first.
     private bool _closeConfirmed;
 
-    /// <summary>Set once the user saves; the caller opens this file afterwards.</summary>
     public string? SavedFilePath { get; private set; }
 
-    // Needed by Avalonia's XAML loader and previewer, which can only create a window with no
-    // arguments; the app itself always uses the constructor below.
     public ScanWindow() : this(null)
     {
     }
@@ -63,13 +55,6 @@ public partial class ScanWindow : Window
         Closing += OnWindowClosing;
         Closed += (_, _) => _vm.Detach();
 
-        // Scanner-unavailable is only ever popped up right after this initial check, not
-        // every time State later flips back to ScannerUnavailable (e.g. after picking a
-        // different, also-unreachable default scanner from Manage Scanners) — the user only
-        // wants it at window-open. And even then, only when nothing is registered at all —
-        // a registered default that just happens to be unreachable right now shows inline
-        // (disabled Preview/Scan, dropdown marks it not-ready) without interrupting with a
-        // popup.
         Opened += async (_, _) =>
         {
             await _vm.InitializeAsync();
@@ -80,9 +65,6 @@ public partial class ScanWindow : Window
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
-    /// <summary>Passed to ScanViewModel as the "close" action — called after a successful
-    /// Save, when there's nothing left to lose, so it skips the unsaved-pages confirmation
-    /// that OnWindowClosing would otherwise show.</summary>
     private void CloseAfterSave()
     {
         _closeConfirmed = true;
@@ -93,9 +75,6 @@ public partial class ScanWindow : Window
     {
         if (_closeConfirmed || (_vm.Pages.Count == 0 && !_vm.IsBusy && !_vm.HasPreview)) return;
 
-        // Cancel first, then ask — Closing can't itself be awaited, so the only way to make
-        // a close attempt wait on user input is to block it here and re-issue Close() below
-        // if they confirm (that second attempt takes the _closeConfirmed shortcut above).
         e.Cancel = true;
         var dialog = new ConfirmCloseWindow(_vm.Pages.Count, _vm.IsBusy, _vm.HasPreview);
         await dialog.ShowDialog(this);
@@ -105,7 +84,6 @@ public partial class ScanWindow : Window
         Close();
     }
 
-    // A box left empty (or unparseable) goes back to the crop's current size.
     private void OnSizeBoxLostFocus(object? sender, RoutedEventArgs e) => _vm.RefreshAreaSize();
 
     private void OnToggleCropPanel(object? sender, RoutedEventArgs e)
@@ -118,7 +96,6 @@ public partial class ScanWindow : Window
         if (chevron is not null) chevron.Text = body.IsVisible ? "⌃" : "⌄";
     }
 
-    /// <summary>Tells the minimap the real size of the scan area and of the selected preset page.</summary>
     private void UpdateMinimapSizes()
     {
         var minimap = this.FindControl<MinimapView>("Minimap");
@@ -131,12 +108,10 @@ public partial class ScanWindow : Window
     private void UpdateMinimapPresetName()
     {
         var preset = ScanViewModel.PagePresetChoices[_vm.PagePresetIndex];
-        // No minimap (or its stretch toggle) for the free-form Custom preset.
         var section = this.FindControl<Control>("MinimapSection");
         if (section is not null) section.IsVisible = preset != ScanViewModel.CustomPresetName;
         var keepRatio = this.FindControl<ToggleSwitch>("KeepRatioToggle");
         if (keepRatio is not null) {
-            // The preset name is bold; the rest of the sentence comes from the localized template.
             TextBlock Label()
             {
                 var parts = Strings.KeepPageRatio.Split("{0}");
@@ -153,8 +128,6 @@ public partial class ScanWindow : Window
 
     private void OnViewModelChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        // Bitmap creation has to happen on the UI thread, so images are rebuilt here in
-        // response to VM changes rather than being bound directly.
         if (e.PropertyName == nameof(ScanViewModel.PreviewImage))
         {
             var selector = this.FindControl<ScanAreaSelector>("AreaSelector");
@@ -162,15 +135,11 @@ public partial class ScanWindow : Window
             if (_vm.PreviewImage is { } preview)
             {
                 selector.Source = CapturedPageImage.ToBitmap(preview);
-                // A fresh preview starts uncropped — matches ScanViewModel resetting
-                // _selectedArea to null at the same moment (see ScanViewModel.PreviewAsync).
                 selector.ResetSelection();
                 UpdateMinimapSizes();
             }
             else
             {
-                // Cleared after a scan (see ScanViewModel.ScanAsync) — back to the
-                // "Preview the scan to see the page here" placeholder.
                 selector.Source = null;
                 selector.ResetSelection();
             }
@@ -186,11 +155,6 @@ public partial class ScanWindow : Window
         }
     }
 
-    /// <summary>Pops up the scanner-unavailable notice once, right after the window's initial
-    /// check — not modal, so the header's own minimize/close stay usable while it's up. Only
-    /// call site is the Opened handler; State flipping back to ScannerUnavailable later (e.g.
-    /// after picking a different, also-unreachable scanner from Manage Scanners) does NOT
-    /// reopen it.</summary>
     private void ShowUnavailablePopup()
     {
         if (_unavailablePopup is not null) return;
@@ -206,9 +170,6 @@ public partial class ScanWindow : Window
         _vm.SetSelectedArea(l, t, r, b);
     }
 
-    /// <summary>A page-size preset (A4/Letter/Legal) was picked — move the actual on-screen
-    /// crop rectangle to match. The ViewModel computed the rectangle; only the View can touch
-    /// the View's own control.</summary>
     private void OnPresetSelectionRequested(object? sender, (double Left, double Top, double Right, double Bottom) rect)
     {
         var selector = this.FindControl<ScanAreaSelector>("AreaSelector");
@@ -254,7 +215,6 @@ public partial class ScanWindow : Window
                         new Border
                         {
                             Background = ThemeBrushes.Get("ThemePaperBrush"),
-                            // Tall enough to actually recognise the page at a glance.
                             Child = new Image
                             {
                                 Source = CapturedPageImage.ToBitmap(page.Page),
@@ -287,8 +247,6 @@ public partial class ScanWindow : Window
 
         if (result.File?.TryGetLocalPath() is not { } path) return false;
 
-        // The suggested name carries no extension, so it comes from the file type chosen in
-        // the dialog — unless the user typed a supported one themselves, which wins.
         if (Path.GetExtension(path).ToLowerInvariant() is not (".pdf" or ".png" or ".jpg" or ".jpeg"))
         {
             var pattern = result.SelectedFileType?.Patterns?.FirstOrDefault() ?? "*.pdf";
@@ -302,16 +260,11 @@ public partial class ScanWindow : Window
 
     private async Task OpenManageScannersAsync()
     {
-        // Opening Manage Scanners is this popup's only other action (besides its own ×), so
-        // it closes right as Manage Scanners opens rather than sitting behind it.
         _unavailablePopup?.Close();
         var manage = new ManageScannersWindow();
         await manage.ShowDialog(this);
     }
 
-    // ------------------------------------------------------------------ //
-    // Custom window chrome (see AppOptions).
-    // ------------------------------------------------------------------ //
     private void OnToolbarPointerPressed(object? sender, PointerPressedEventArgs e) =>
         this.OnHeaderPointerPressed(e, supportsMaximizeToggle: true);
 

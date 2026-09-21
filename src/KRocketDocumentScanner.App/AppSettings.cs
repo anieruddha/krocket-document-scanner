@@ -6,18 +6,10 @@ using Tomlyn.Model;
 
 namespace KRocketDocumentScanner.App;
 
-/// <summary>
-/// The hand-editable settings file (~/.config/krocketdocumentscanner/settings.toml, next to scanners.json).
-/// The defaults live here in code. At start-up <see cref="LoadOrCreate"/> reads the file; if
-/// it is missing, or is not valid, it writes a new one holding the defaults (a file that was
-/// there is first kept as settings.toml.bad). Read-only otherwise: nothing edits it while the
-/// app runs, and a settings problem never stops start-up.
-/// </summary>
 public sealed class AppSettings
 {
     private const string NetworkTimeoutKey = "network_timeout_seconds";
 
-    /// <summary>Longest a single scanner network call may take.</summary>
     public TimeSpan NetworkTimeout { get; private init; } = SettingsDefaults.NetworkCallTimeout;
 
     public static string FilePath() =>
@@ -38,7 +30,6 @@ public sealed class AppSettings
         }
         catch
         {
-            // Unwritable folder, file in use, and so on: run on the defaults.
         }
         return defaults;
     }
@@ -63,7 +54,6 @@ public sealed class AppSettings
         }
     }
 
-    // Write-to-temp-then-move, like the scanner list, so a crash can't leave half a file.
     private static void Write(string path, AppSettings settings)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
