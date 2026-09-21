@@ -23,6 +23,12 @@ Its source code is available at https://github.com/cyanfish/naps2.
 SixLabors.ImageSharp is used under the Apache License 2.0 terms of the Six Labors Split License, which apply to
 software distributed under an open source license. Full text: https://github.com/SixLabors/ImageSharp/blob/main/LICENSE
 
-## System components
-Scanners are reached through SANE and the sane-airscan backend, which the user installs on their system. They
-are not part of this source code.
+## SANE and sane-airscan
+The Flatpak build includes SANE (sane-backends 1.4.0) and the sane-airscan backend
+
+- SANE: https://gitlab.com/sane-project/backends. GNU GPL version 2 or later, with an exception that allows
+  linking the SANE libraries with other programs. `include/sane/sane.h` is in the public domain.
+- sane-airscan: https://github.com/alexpevzner/sane-airscan.
+
+In the Flatpak build, SANE is modified by a patch from the NAPS2 project, `sane-streamdevices.patch`, from
+https://github.com/cyanfish/naps2-sane (GNU GPL version 2), commit 6384d7d03d5d2a13569b8db0d208ce91bd0ad40b.
