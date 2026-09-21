@@ -26,3 +26,18 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --project tests/KRocketDocumentScanner.Tests --filter-not-trait "Category=Hardware"
+
+  flatpak:
+
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      options: --privileged
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      with:
+        bundle: krocket-document-scanner.flatpak
+        manifest-path: flatpak/io.github.anieruddha.KRocketDocumentScanner.yml
