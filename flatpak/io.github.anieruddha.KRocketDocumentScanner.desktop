@@ -1,8 +1,8 @@
-[Desktop Entry]                                                                             
-Type=Application                                                                            
-Name=KRocket Document Scanner                                                               
-Comment=Scan documents to PDF, PNG or JPEG                                                  
-Exec=krocket-document-scanner                                                               
-Icon=io.github.anieruddha.KRocketDocumentScanner                                            
-Terminal=false                                                                              
-Categories=Graphics;Scanning;GTK;   
+[Desktop Entry]
+Type=Application
+Name=KRocket Document Scanner
+Comment=Scan documents to PDF, PNG or JPEG
+Exec=krocket-document-scanner
+Icon=io.github.anieruddha.KRocketDocumentScanner
+Terminal=false
+Categories=Graphics;Scanning;GTK;
