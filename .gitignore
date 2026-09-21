@@ -58,4 +58,3 @@ nunit-*.xml
 
 # IDE
 .idea
-*.sln
