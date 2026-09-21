@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+    <id>io.github.anieruddha.KRocketDocumentScanner</id>
+    <name>KRocket Document Scanner</name>
+    <summary>Scan documents to PDF, PNG or JPEG</summary>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0-only</project_license>
+    <description>
+        <p>A desktop app for scanning documents on Linux. Press Preview, choose the area, press
+            Scan, and save the pages as a PDF, PNG or JPEG.</p>
+    </description>
+    <launchable
+            type="desktop-id">io.github.anieruddha.KRocketDocumentScanner.desktop</launchable>
+    <releases>
+        <release version="0.1.0" date="2026-09-20"/>
+    </releases>
+</component>   

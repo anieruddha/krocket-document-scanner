@@ -1,0 +1,98 @@
+id: io.github.anieruddha.KRocketDocumentScanner
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.dotnet10
+command: krocket-document-scanner
+
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --device=all
+  - --share=network
+  - --system-talk-name=org.freedesktop.Avahi
+  - --filesystem=xdg-documents
+  - --env=SANE_CONFIG_DIR=/app/etc/sane.d
+
+build-options:
+  append-path: /usr/lib/sdk/dotnet10/bin
+  append-ld-library-path: /usr/lib/sdk/dotnet10/lib
+  env:
+    DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    DOTNET_NOLOGO: '1'
+
+modules:
+  - name: libgusb
+    buildsystem: meson
+    config-opts:
+      - -Ddocs=false
+    sources:
+      - type: git
+        url: https://github.com/hughsie/libgusb.git
+        tag: 0.4.9
+        commit: ed31c8134d80d006bd45450e84180be2a7c0742e
+
+  - name: sane-backends
+    buildsystem: autotools
+    sources:
+      - type: git
+        url: https://gitlab.com/sane-project/backends.git
+        tag: 1.4.0
+        commit: c7e4b5e35e3d614d2b1181d760a717bfc395a203
+
+  - name: avahi
+    cleanup:
+      - /bin
+      - /lib/avahi
+      - /share/applications/*.desktop
+      - /share/avahi
+    config-opts:
+      - --with-distro=none
+      - --disable-introspection
+      - --disable-qt3
+      - --disable-qt4
+      - --disable-qt5
+      - --disable-gtk
+      - --disable-gtk3
+      - --disable-core-docs
+      - --disable-manpages
+      - --disable-libdaemon
+      - --disable-python
+      - --disable-pygobject
+      - --disable-mono
+      - --disable-monodoc
+      - --disable-autoipd
+      - --disable-doxygen-doc
+      - --disable-doxygen-dot
+      - --disable-doxygen-xml
+      - --disable-doxygen-html
+      - --disable-xmltoman
+    sources:
+      - type: git
+        url: https://github.com/lathiat/avahi.git
+        tag: v0.8
+        commit: f060abee2807c943821d88839c013ce15db17b58
+
+  - name: sane-airscan
+    buildsystem: meson
+    sources:
+      - type: git
+        url: https://github.com/alexpevzner/sane-airscan.git
+        tag: 0.99.37
+        commit: 03eddd0d8058c482462bccabadad0e56e8400cb4
+
+  - name: krocket-document-scanner
+    buildsystem: simple
+    build-commands:
+      - dotnet publish src/KRocketDocumentScanner.App/KRocketDocumentScanner.App.csproj -c Release -r linux-x64 --self-contained --source ./nuget-sources -o /app/bin
+      - mv /app/bin/KRocketDocumentScanner.App /app/bin/krocket-document-scanner
+      - install -Dm644 flatpak/io.github.anieruddha.KRocketDocumentScanner.desktop -t /app/share/applications
+      - install -Dm644 flatpak/io.github.anieruddha.KRocketDocumentScanner.Manage.desktop -t /app/share/applications
+      - install -Dm644 flatpak/io.github.anieruddha.KRocketDocumentScanner.metainfo.xml -t /app/share/metainfo
+      - install -Dm644 icon.svg /app/share/icons/hicolor/scalable/apps/io.github.anieruddha.KRocketDocumentScanner.svg
+      - install -Dm644 manage-scanner.svg /app/share/icons/hicolor/scalable/apps/io.github.anieruddha.KRocketDocumentScanner.Manage.svg
+    sources:
+      - type: dir
+        path: ..
+      - nuget-sources.json

@@ -1,0 +1,8 @@
+[Desktop Entry]                                                                             
+Type=Application                                                                            
+Name=KRocket Scanner Manager                                                                
+Comment=Add and manage scanners                                                             
+Exec=krocket-document-scanner --manage                                                      
+Icon=io.github.anieruddha.KRocketDocumentScanner.Manage                                     
+Terminal=false                                                                              
+Categories=Settings;HardwareSettings;  
