@@ -15,7 +15,7 @@ namespace KRocketDocumentScanner.App;
 public partial class ScanWindow : Window
 {
     private readonly ScanViewModel _vm;
-    private readonly int _imageQuality;
+    private static bool? _sessionReduceFileSize;
     private ScannerUnavailableWindow? _unavailablePopup;
 
     private bool _closeConfirmed;
@@ -36,7 +36,6 @@ public partial class ScanWindow : Window
         if (stretch is not null && minimap is not null)
             stretch.IsCheckedChanged += (_, _) => minimap.Stretch = stretch.IsChecked == true;
 
-        _imageQuality = AppSettings.LoadOrCreate().ImageQuality;
         _vm = new ScanViewModel(
             App.ScannerEngine,
             App.ScannerRegistry,
@@ -44,10 +43,15 @@ public partial class ScanWindow : Window
             SaveAsync,
             OpenManageScannersAsync,
             CloseAfterSave,
-            page => page.CachedJpeg = ScanOutputWriter.EncodeJpeg(page, _imageQuality));
+            page => page.CachedJpeg = ScanOutputWriter.EncodeJpeg(page, ScanOutputWriter.ReducedJpegQuality));
+        _vm.ReduceFileSize = _sessionReduceFileSize ??= AppSettings.LoadOrCreate().ReduceFileSize;
 
         DataContext = _vm;
         _vm.PropertyChanged += OnViewModelChanged;
+        _vm.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ScanViewModel.ReduceFileSize)) _sessionReduceFileSize = _vm.ReduceFileSize;
+        };
         _vm.PresetSelectionRequested += OnPresetSelectionRequested;
         _vm.AspectLockChanged += (_, aspectLock) =>
             this.FindControl<ScanAreaSelector>("AreaSelector")?.SetLockedAspectRatio(aspectLock);
@@ -256,7 +260,7 @@ public partial class ScanWindow : Window
             path += pattern.TrimStart('*');
         }
 
-        ScanOutputWriter.Save(_vm.Pages.Select(p => p.Page).ToList(), path, _vm.PdfSheet, _imageQuality);
+        ScanOutputWriter.Save(_vm.Pages.Select(p => p.Page).ToList(), path, _vm.PdfSheet, _vm.ReduceFileSize);
         SavedFilePath = path;
         return true;
     }

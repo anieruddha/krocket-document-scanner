@@ -57,6 +57,8 @@
     "CropPanelToggleButton": "Crop Adjustment",
     "AutoDeskewLabel": "Straighten pages automatically",
     "SkipBlankPagesLabel": "Skip blank pages",
+    "ReduceFileSizeLabel": "Reduce file size",
+    "ReduceFileSizeTip": "Compresses pages when saved as PDF or JPEG. Turn off to keep full quality.",
     "PreviewButton": "Preview",
     "ScanActionButton": "Scan",
     "PreviewPlaceholder": "Preview the scan to see the page here",

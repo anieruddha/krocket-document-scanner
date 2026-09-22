@@ -460,6 +460,14 @@ public sealed class ScanViewModel : ObservableObject
         }
     }
 
+    private bool _reduceFileSize = true;
+
+    public bool ReduceFileSize
+    {
+        get => _reduceFileSize;
+        set => SetField(ref _reduceFileSize, value);
+    }
+
     private bool _minimapStretch = ScanDefaults.StretchToPage;
 
     public bool MinimapStretch
@@ -712,7 +720,7 @@ public sealed class ScanViewModel : ObservableObject
         string? preset = IsCustomPreset ? null : PagePresetChoices[_pagePresetIndex];
         if (_minimapStretch && preset is not null)
             page.StretchToSheet = PaperDetector.KnownSizes.FirstOrDefault(k => k.Name == preset);
-        _encodePage(page);
+        if (_reduceFileSize) _encodePage(page);
         Pages.Add(new ScannedPageViewModel { Page = page, Number = Pages.Count + 1, PresetName = preset });
         PageCount = Pages.Count;
         OnPropertyChanged(nameof(Pages));
