@@ -13,6 +13,7 @@ finish-args:
   - --share=network
   - --system-talk-name=org.freedesktop.Avahi
   - --filesystem=xdg-documents
+  - --talk-name=org.freedesktop.portal.Desktop
   - --env=SANE_CONFIG_DIR=/app/etc/sane.d
 
 build-options:
