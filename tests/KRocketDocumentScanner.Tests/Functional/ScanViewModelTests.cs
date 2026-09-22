@@ -15,7 +15,7 @@ public class ScanViewModelTests
     private const string Two = "usb:two";
 
     private static ScanViewModel NewVm(KRocketDocumentScanner.Core.Abstractions.IScannerEngine engine, ScannerRegistryManager registry, string? driverId, Action? close = null) =>
-        new(engine, registry, driverId, _ => Task.FromResult(true), () => Task.CompletedTask, close ?? (() => { }));
+        new(engine, registry, driverId, _ => Task.FromResult(true), () => Task.CompletedTask, close ?? (() => { }), _ => { });
 
     private static async Task<(ScanViewModel Vm, ScannerRegistryManager Registry, FakeEngine Engine)> ReadyAsync(
         string[]? reachable = null, params ScannerRegistryEntry[] saved)
@@ -73,7 +73,7 @@ public class ScanViewModelTests
     {
         var (registry, engine, store) = await Make.RegistryAsync(new[] { Two }, Make.Entry(One), Make.Entry(Two, "Second"));
         store.Saved.DefaultDriverId = null;
-        await registry.LoadStoredAsync();
+        await registry.LoadStoredAsync(ct: TestContext.Current.CancellationToken);
         var vm = NewVm(engine, registry, null);
         await vm.InitializeAsync();
         Assert.Equal(ScanScreenState.Ready, vm.State);
@@ -210,7 +210,7 @@ public class ScanViewModelTests
         await vm.PreviewCommand.ExecuteAsync();
         Assert.True(vm.HasPreview);
 
-        await registry.RemoveAsync(One);
+        await registry.RemoveAsync(One, ct: TestContext.Current.CancellationToken);
         await Make.EventuallyAsync(() => vm.ScannerName == "Second");
         Assert.False(vm.HasPreview);
         await Make.EventuallyAsync(() => vm.State == ScanScreenState.Ready);
@@ -221,7 +221,7 @@ public class ScanViewModelTests
     {
         var (vm, registry, _) = await ReadyAsync();
         await vm.PreviewCommand.ExecuteAsync();
-        await registry.RemoveAsync(Two);
+        await registry.RemoveAsync(Two, ct: TestContext.Current.CancellationToken);
         await Make.EventuallyAsync(() => vm.ScannerChoices.Count == 1);
         Assert.True(vm.HasPreview);
         Assert.Equal("First", vm.ScannerName);
@@ -232,8 +232,8 @@ public class ScanViewModelTests
     {
         var (vm, registry, _) = await ReadyAsync();
         await vm.PreviewCommand.ExecuteAsync();
-        await registry.RemoveAsync(One);
-        await registry.AddManualAsync(One, "First again", null);
+        await registry.RemoveAsync(One, ct: TestContext.Current.CancellationToken);
+        await registry.AddManualAsync(One, "First again", null, ct: TestContext.Current.CancellationToken);
         await Make.EventuallyAsync(() => !vm.HasPreview);
         Assert.Equal("Second", vm.ScannerName);
     }
@@ -244,11 +244,11 @@ public class ScanViewModelTests
         var (vm, registry, engine) = await ReadyAsync();
         await vm.PreviewCommand.ExecuteAsync();
         engine.Reachable.Add(OneEscl);
-        await registry.AddFromDiscoveryAsync(new DiscoveredScanner(OneEscl, "E", "M (escl:https://192.0.2.10:443)"));
+        await registry.AddFromDiscoveryAsync(new DiscoveredScanner(OneEscl, "E", "M (escl:https://192.0.2.10:443)"), ct: TestContext.Current.CancellationToken);
         Assert.Equal(2, registry.Entries.Count);
 
         await Make.EventuallyAsync(() => registry.Entries[0].DriverId == OneEscl);
-        await Task.Delay(100);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
         Assert.True(vm.HasPreview);
         Assert.Equal("First", vm.ScannerName);
         await vm.ScanCommand.ExecuteAsync();
@@ -261,8 +261,8 @@ public class ScanViewModelTests
         var (vm, registry, _) = await ReadyAsync();
         await vm.PreviewCommand.ExecuteAsync();
         vm.Detach();
-        await registry.RemoveAsync(One);
-        await Task.Delay(150);
+        await registry.RemoveAsync(One, ct: TestContext.Current.CancellationToken);
+        await Task.Delay(150, TestContext.Current.CancellationToken);
         Assert.True(vm.HasPreview);
         Assert.Equal("First", vm.ScannerName);
     }
@@ -274,7 +274,7 @@ public class ScanViewModelTests
         var vm = NewVm(engine, registry, One);
         Assert.All(vm.ScannerChoices, c => Assert.False(c.IsReady));
 
-        await registry.LoadAndRefreshAsync();
+        await registry.LoadAndRefreshAsync(ct: TestContext.Current.CancellationToken);
         await Make.EventuallyAsync(() => vm.ScannerChoices[0].IsReady);
         Assert.False(vm.ScannerChoices[1].IsReady);
 

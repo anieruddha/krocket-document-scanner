@@ -100,7 +100,7 @@ public class AddAndManageViewModelTests
     public async Task Adding_an_already_registered_scanner_from_discovery_does_not_duplicate_it()
     {
         var (vm, registry, engine, _) = await NewAddAsync("usb:1");
-        await registry.AddManualAsync("usb:1", "Mine", null);
+        await registry.AddManualAsync("usb:1", "Mine", null, ct: TestContext.Current.CancellationToken);
         engine.Discoverable.Add(new DiscoveredScanner("usb:1", "C", "Three"));
         await vm.DiscoverCommand.ExecuteAsync();
         Assert.Single(vm.Found);
@@ -218,7 +218,7 @@ public class AddAndManageViewModelTests
         Assert.False(vm.CanChooseDefault);
         Assert.False(vm.IsEmpty);
 
-        await registry.AddManualAsync("usb:2", "Two", null);
+        await registry.AddManualAsync("usb:2", "Two", null, ct: TestContext.Current.CancellationToken);
         var vm2 = new ManageScannersViewModel(registry, () => Task.CompletedTask);
         Assert.Equal(2, vm2.Scanners.Count);
         Assert.True(vm2.CanChooseDefault);
@@ -228,8 +228,8 @@ public class AddAndManageViewModelTests
     public async Task Manage_can_change_the_default_and_remove_a_scanner()
     {
         var (registry, _, _) = await Make.RegistryAsync(new[] { "usb:1", "usb:2" });
-        await registry.AddManualAsync("usb:1", "One", null);
-        await registry.AddManualAsync("usb:2", "Two", null);
+        await registry.AddManualAsync("usb:1", "One", null, ct: TestContext.Current.CancellationToken);
+        await registry.AddManualAsync("usb:2", "Two", null, ct: TestContext.Current.CancellationToken);
         var vm = new ManageScannersViewModel(registry, () => Task.CompletedTask);
 
         await vm.SetDefaultAsync("usb:2");

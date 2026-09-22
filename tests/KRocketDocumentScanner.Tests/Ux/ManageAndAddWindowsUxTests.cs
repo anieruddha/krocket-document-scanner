@@ -113,7 +113,7 @@ public class ManageAndAddWindowsUxTests
         OpenManualTab(w);
         var boxes = UxHost.All<TextBox>(w).Where(b => b.IsEffectivelyVisible).ToList();
         Assert.Single(boxes);
-        Assert.Equal(Strings.AddressWatermark, boxes[0].Watermark);
+        Assert.Equal(Strings.AddressWatermark, boxes[0].PlaceholderText);
         Assert.DoesNotContain("Add a network scanner by its address", UxHost.Texts(w));
         Assert.DoesNotContain(UxHost.Texts(w), t => t.Contains("Scanner Name"));
         w.Close();

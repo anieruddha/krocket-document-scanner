@@ -12,7 +12,10 @@ namespace KRocketDocumentScanner.Tests.Hardware;
 
 public sealed class HardwareFactAttribute : FactAttribute
 {
-    public HardwareFactAttribute()
+    public HardwareFactAttribute(
+        [System.Runtime.CompilerServices.CallerFilePath] string? sourceFilePath = null,
+        [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
+        : base(sourceFilePath, sourceLineNumber)
     {
         if (Environment.GetEnvironmentVariable("KROCKETDOCUMENTSCANNER_SKIP_HARDWARE") == "1")
             Skip = "KROCKETDOCUMENTSCANNER_SKIP_HARDWARE=1";
@@ -165,7 +168,7 @@ public class HardwareScannerTests : IClassFixture<HardwareFixture>
         await registry.AddFromDiscoveryAsync(scanner);
 
         var vm = new ScanViewModel(_hw.Engine, registry, registry.DefaultDriverId,
-            _ => Task.FromResult(false), () => Task.CompletedTask, () => { });
+            _ => Task.FromResult(false), () => Task.CompletedTask, () => { }, _ => { });
         await vm.InitializeAsync();
         Assert.Equal(ScanScreenState.Ready, vm.State);
 
