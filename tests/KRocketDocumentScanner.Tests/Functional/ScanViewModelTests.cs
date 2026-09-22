@@ -51,8 +51,11 @@ public class ScanViewModelTests
         Assert.False(vm.IsWorking);
         Assert.Null(vm.StatusMessage);
         Assert.True(vm.PreviewCommand.CanExecute(null));
-        Assert.True(vm.ScanCommand.CanExecute(null));
+        Assert.False(vm.ScanCommand.CanExecute(null));
         Assert.True(vm.IsReady);
+
+        await vm.PreviewCommand.ExecuteAsync();
+        Assert.True(vm.ScanCommand.CanExecute(null));
     }
 
     [Fact]

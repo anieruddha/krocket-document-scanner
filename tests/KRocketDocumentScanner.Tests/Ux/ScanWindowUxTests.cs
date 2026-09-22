@@ -45,6 +45,10 @@ public class ScanWindowUxTests
         gate.SetResult(true);
         await UxHost.PumpAsync(() => vm.State == ScanScreenState.Ready);
         Assert.True(Preview(window).IsEffectivelyEnabled);
+        Assert.False(Scan(window).IsEffectivelyEnabled);
+
+        await vm.PreviewCommand.ExecuteAsync();
+        UxHost.Flush();
         Assert.True(Scan(window).IsEffectivelyEnabled);
         window.Close();
     }
