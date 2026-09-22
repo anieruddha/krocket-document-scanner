@@ -15,6 +15,7 @@ namespace KRocketDocumentScanner.App;
 public partial class ScanWindow : Window
 {
     private readonly ScanViewModel _vm;
+    private readonly int _imageQuality;
     private ScannerUnavailableWindow? _unavailablePopup;
 
     private bool _closeConfirmed;
@@ -35,13 +36,15 @@ public partial class ScanWindow : Window
         if (stretch is not null && minimap is not null)
             stretch.IsCheckedChanged += (_, _) => minimap.Stretch = stretch.IsChecked == true;
 
+        _imageQuality = AppSettings.LoadOrCreate().ImageQuality;
         _vm = new ScanViewModel(
             App.ScannerEngine,
             App.ScannerRegistry,
             preselectedDriverId,
             SaveAsync,
             OpenManageScannersAsync,
-            CloseAfterSave);
+            CloseAfterSave,
+            page => page.CachedJpeg = ScanOutputWriter.EncodeJpeg(page, _imageQuality));
 
         DataContext = _vm;
         _vm.PropertyChanged += OnViewModelChanged;
@@ -253,7 +256,7 @@ public partial class ScanWindow : Window
             path += pattern.TrimStart('*');
         }
 
-        ScanOutputWriter.Save(_vm.Pages.Select(p => p.Page).ToList(), path, _vm.PdfSheet);
+        ScanOutputWriter.Save(_vm.Pages.Select(p => p.Page).ToList(), path, _vm.PdfSheet, _imageQuality);
         SavedFilePath = path;
         return true;
     }

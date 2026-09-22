@@ -18,6 +18,8 @@ public sealed class CapturedPage
 
     public PaperSize? StretchToSheet { get; set; }
 
+    public byte[]? CachedJpeg { get; set; }
+
     public int BytesPerPixel => Format switch
     {
         PixelFormat.Rgb24 => 3,
