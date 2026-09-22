@@ -248,6 +248,7 @@ public partial class ScanWindow : Window
 
         ScanOutputWriter.Save(_vm.Pages.Select(p => p.Page).ToList(), path, _vm.PdfSheet);
         SavedFilePath = path;
+        await Launcher.LaunchFileInfoAsync(new FileInfo(path));
         return true;
     }
 
