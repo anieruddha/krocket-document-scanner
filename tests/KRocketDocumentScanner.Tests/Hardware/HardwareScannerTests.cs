@@ -165,7 +165,7 @@ public class HardwareScannerTests : IClassFixture<HardwareFixture>
         await registry.AddFromDiscoveryAsync(scanner);
 
         var vm = new ScanViewModel(_hw.Engine, registry, registry.DefaultDriverId,
-            _ => Task.FromResult(false), () => Task.CompletedTask, () => { });
+            _ => Task.FromResult(false), () => Task.CompletedTask);
         await vm.InitializeAsync();
         Assert.Equal(ScanScreenState.Ready, vm.State);
 

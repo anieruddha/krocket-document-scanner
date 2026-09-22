@@ -94,7 +94,7 @@ public class DialogsUxTests
     public async Task The_unavailable_popup_has_a_single_manage_scanners_button()
     {
         var (registry, engine, _) = await Make.RegistryAsync(null, Make.Entry("usb:1"));
-        var vm = new ScanViewModel(engine, registry, "usb:1", _ => Task.FromResult(false), () => Task.CompletedTask, () => { });
+        var vm = new ScanViewModel(engine, registry, "usb:1", _ => Task.FromResult(false), () => Task.CompletedTask);
         await vm.InitializeAsync();
         var w = new ScannerUnavailableWindow(vm);
         w.Show();
