@@ -40,8 +40,7 @@ public partial class ScanWindow : Window
             App.ScannerRegistry,
             preselectedDriverId,
             SaveAsync,
-            OpenManageScannersAsync,
-            CloseAfterSave);
+            OpenManageScannersAsync);
 
         DataContext = _vm;
         _vm.PropertyChanged += OnViewModelChanged;
@@ -64,12 +63,6 @@ public partial class ScanWindow : Window
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
-
-    private void CloseAfterSave()
-    {
-        _closeConfirmed = true;
-        Close();
-    }
 
     private async void OnWindowClosing(object? sender, WindowClosingEventArgs e)
     {

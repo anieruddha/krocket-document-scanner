@@ -15,7 +15,7 @@ public class ScanViewModelTests
     private const string Two = "usb:two";
 
     private static ScanViewModel NewVm(KRocketDocumentScanner.Core.Abstractions.IScannerEngine engine, ScannerRegistryManager registry, string? driverId, Action? close = null) =>
-        new(engine, registry, driverId, _ => Task.FromResult(true), () => Task.CompletedTask, close ?? (() => { }));
+        new(engine, registry, driverId, _ => Task.FromResult(true), () => Task.CompletedTask);
 
     private static async Task<(ScanViewModel Vm, ScannerRegistryManager Registry, FakeEngine Engine)> ReadyAsync(
         string[]? reachable = null, params ScannerRegistryEntry[] saved)
