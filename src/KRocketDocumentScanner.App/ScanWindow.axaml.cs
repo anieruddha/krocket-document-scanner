@@ -42,7 +42,6 @@ public partial class ScanWindow : Window
             preselectedDriverId,
             SaveAsync,
             OpenManageScannersAsync,
-            CloseAfterSave,
             page => page.CachedJpeg = ScanOutputWriter.EncodeJpeg(page, ScanOutputWriter.ReducedJpegQuality));
         _vm.ReduceFileSize = _sessionReduceFileSize ??= AppSettings.LoadOrCreate().ReduceFileSize;
 
@@ -71,12 +70,6 @@ public partial class ScanWindow : Window
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
-
-    private void CloseAfterSave()
-    {
-        _closeConfirmed = true;
-        Close();
-    }
 
     private async void OnWindowClosing(object? sender, WindowClosingEventArgs e)
     {
@@ -262,6 +255,7 @@ public partial class ScanWindow : Window
 
         ScanOutputWriter.Save(_vm.Pages.Select(p => p.Page).ToList(), path, _vm.PdfSheet, _vm.ReduceFileSize);
         SavedFilePath = path;
+        await Launcher.LaunchFileInfoAsync(new FileInfo(path));
         return true;
     }
 

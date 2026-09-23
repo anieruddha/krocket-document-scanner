@@ -13,6 +13,7 @@ finish-args:
   - --share=network
   - --system-talk-name=org.freedesktop.Avahi
   - --filesystem=xdg-documents
+  - --talk-name=org.freedesktop.portal.Desktop
   - --env=SANE_CONFIG_DIR=/app/etc/sane.d
 
 build-options:
@@ -41,6 +42,13 @@ modules:
         url: https://gitlab.com/sane-project/backends.git
         tag: 1.4.0
         commit: c7e4b5e35e3d614d2b1181d760a717bfc395a203
+      - type: file
+        url: https://raw.githubusercontent.com/cyanfish/naps2-sane/6384d7d03d5d2a13569b8db0d208ce91bd0ad40b/patches/sane-streamdevices.patch
+        sha256: 24168219c24ff54591972a77ad86ad169a13ade18991e403a51a4c7a134e5f49
+        dest-filename: sane-streamdevices.patch
+      - type: shell
+        commands:
+          - patch -p1 < sane-streamdevices.patch
 
   - name: libevent
     sources:

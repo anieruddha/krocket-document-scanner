@@ -51,7 +51,7 @@ public static class UxHost
 
     public static ScanViewModel InjectViewModel(ScanWindow window, FakeEngine engine, ScannerRegistryManager registry, string? driverId)
     {
-        var vm = new ScanViewModel(engine, registry, driverId, _ => Task.FromResult(false), () => Task.CompletedTask, window.Close, _ => { });
+        var vm = new ScanViewModel(engine, registry, driverId, _ => Task.FromResult(false), () => Task.CompletedTask, _ => { });
         typeof(ScanWindow).GetField("_vm", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(window, vm);
         window.DataContext = vm;
         return vm;

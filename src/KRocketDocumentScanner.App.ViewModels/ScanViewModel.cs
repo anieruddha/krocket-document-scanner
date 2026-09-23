@@ -64,7 +64,6 @@ public sealed class ScanViewModel : ObservableObject
     private readonly ScannerRegistryManager _registry;
     private readonly Func<string, Task<bool>> _saveAs;
     private readonly Func<Task> _openManageScanners;
-    private readonly Action _close;
     private readonly Action<CapturedPage> _encodePage;
 
     public ScanViewModel(
@@ -73,14 +72,12 @@ public sealed class ScanViewModel : ObservableObject
         string? preselectedDriverId,
         Func<string, Task<bool>> saveAs,
         Func<Task> openManageScanners,
-        Action close,
         Action<CapturedPage> encodePage)
     {
         _engine = engine;
         _registry = registry;
         _saveAs = saveAs;
         _openManageScanners = openManageScanners;
-        _close = close;
         _encodePage = encodePage;
 
         _driverId = preselectedDriverId ?? registry.DefaultDriverId;
@@ -90,7 +87,7 @@ public sealed class ScanViewModel : ObservableObject
         registry.ScannerRepointed += OnScannerRepointed;
 
         PreviewCommand = new AsyncRelayCommand(PreviewAsync, () => State == ScanScreenState.Ready);
-        ScanCommand = new AsyncRelayCommand(ScanAsync, () => State == ScanScreenState.Ready);
+        ScanCommand = new AsyncRelayCommand(ScanAsync, () => State == ScanScreenState.Ready && HasPreview);
         ChooseAnotherScannerCommand = new AsyncRelayCommand(ChooseAnotherAsync);
         RefreshScannersCommand = new AsyncRelayCommand(RefreshScannersAsync, () => !IsWorking);
         SaveCommand = new AsyncRelayCommand(SaveAsync, () => Pages.Count > 0);
@@ -284,7 +281,7 @@ public sealed class ScanViewModel : ObservableObject
     public CapturedPage? PreviewImage
     {
         get => _previewImage;
-        private set { SetField(ref _previewImage, value); OnPropertyChanged(nameof(HasPreview)); NotifyAreaSize(); }
+        private set { SetField(ref _previewImage, value); OnPropertyChanged(nameof(HasPreview)); NotifyAreaSize(); ScanCommand.RaiseCanExecuteChanged(); }
     }
     public bool HasPreview => _previewImage is not null;
 
@@ -901,12 +898,22 @@ public sealed class ScanViewModel : ObservableObject
         try
         {
             if (await _saveAs(suggested))
-                _close();
+                Refresh();
         }
         catch (Exception ex)
         {
             StatusMessage = string.Format(Strings.SaveFailedStatus, ex.Message);
         }
+    }
+
+    private void Refresh()
+    {
+        Pages.Clear();
+        PageCount = Pages.Count;
+        OnPropertyChanged(nameof(Pages));
+        PreviewImage = null;
+        ResetCropSelection();
+        StatusMessage = null;
     }
 
     private string? _statusMessage;
