@@ -18,7 +18,7 @@ public class RegistryManagerTests
     public async Task First_scanner_added_becomes_default()
     {
         var (registry, _, _) = await Make.RegistryAsync(new[] { UsbOne });
-        await registry.AddManualAsync(UsbOne, "One", null);
+        await registry.AddManualAsync(UsbOne, "One", null, ct: TestContext.Current.CancellationToken);
         Assert.Equal(UsbOne, registry.DefaultDriverId);
     }
 
@@ -26,8 +26,8 @@ public class RegistryManagerTests
     public async Task Adding_a_second_scanner_keeps_the_default()
     {
         var (registry, _, _) = await Make.RegistryAsync(new[] { UsbOne, UsbTwo });
-        await registry.AddManualAsync(UsbOne, "One", null);
-        await registry.AddManualAsync(UsbTwo, "Two", null);
+        await registry.AddManualAsync(UsbOne, "One", null, ct: TestContext.Current.CancellationToken);
+        await registry.AddManualAsync(UsbTwo, "Two", null, ct: TestContext.Current.CancellationToken);
         Assert.Equal(UsbOne, registry.DefaultDriverId);
         Assert.Equal(2, registry.Entries.Count);
     }
@@ -36,13 +36,13 @@ public class RegistryManagerTests
     public async Task Removing_the_default_promotes_the_first_online_scanner()
     {
         var (registry, engine, _) = await Make.RegistryAsync(new[] { UsbOne, UsbTwo, UsbThree });
-        await registry.AddManualAsync(UsbOne, "One", null);
-        await registry.AddManualAsync(UsbTwo, "Two", null);
-        await registry.AddManualAsync(UsbThree, "Three", null);
+        await registry.AddManualAsync(UsbOne, "One", null, ct: TestContext.Current.CancellationToken);
+        await registry.AddManualAsync(UsbTwo, "Two", null, ct: TestContext.Current.CancellationToken);
+        await registry.AddManualAsync(UsbThree, "Three", null, ct: TestContext.Current.CancellationToken);
         engine.Reachable.Remove(UsbTwo);
-        await registry.LoadAndRefreshAsync();
+        await registry.LoadAndRefreshAsync(ct: TestContext.Current.CancellationToken);
 
-        await registry.RemoveAsync(UsbOne);
+        await registry.RemoveAsync(UsbOne, ct: TestContext.Current.CancellationToken);
         Assert.Equal(UsbThree, registry.DefaultDriverId);
     }
 
@@ -50,12 +50,12 @@ public class RegistryManagerTests
     public async Task Removing_the_default_with_nothing_online_and_one_left_promotes_it()
     {
         var (registry, engine, _) = await Make.RegistryAsync(new[] { UsbOne, UsbTwo });
-        await registry.AddManualAsync(UsbOne, "One", null);
-        await registry.AddManualAsync(UsbTwo, "Two", null);
+        await registry.AddManualAsync(UsbOne, "One", null, ct: TestContext.Current.CancellationToken);
+        await registry.AddManualAsync(UsbTwo, "Two", null, ct: TestContext.Current.CancellationToken);
         engine.Reachable.Clear();
-        await registry.LoadAndRefreshAsync();
+        await registry.LoadAndRefreshAsync(ct: TestContext.Current.CancellationToken);
 
-        await registry.RemoveAsync(UsbOne);
+        await registry.RemoveAsync(UsbOne, ct: TestContext.Current.CancellationToken);
         Assert.Equal(UsbTwo, registry.DefaultDriverId);
     }
 
@@ -64,11 +64,11 @@ public class RegistryManagerTests
     {
         var (registry, engine, _) = await Make.RegistryAsync(new[] { UsbOne, UsbTwo, UsbThree });
         foreach (var (id, n) in new[] { (UsbOne, "1"), (UsbTwo, "2"), (UsbThree, "3") })
-            await registry.AddManualAsync(id, n, null);
+            await registry.AddManualAsync(id, n, null, ct: TestContext.Current.CancellationToken);
         engine.Reachable.Clear();
-        await registry.LoadAndRefreshAsync();
+        await registry.LoadAndRefreshAsync(ct: TestContext.Current.CancellationToken);
 
-        await registry.RemoveAsync(UsbOne);
+        await registry.RemoveAsync(UsbOne, ct: TestContext.Current.CancellationToken);
         Assert.Null(registry.DefaultDriverId);
     }
 
@@ -77,20 +77,20 @@ public class RegistryManagerTests
     {
         var (registry, engine, store) = await Make.RegistryAsync(new[] { UsbTwo }, Make.Entry(UsbOne), Make.Entry(UsbTwo));
         store.Saved.DefaultDriverId = null;
-        await registry.LoadStoredAsync();
+        await registry.LoadStoredAsync(ct: TestContext.Current.CancellationToken);
 
-        Assert.Equal(UsbTwo, await registry.EnsureDefaultAsync());
+        Assert.Equal(UsbTwo, await registry.EnsureDefaultAsync(ct: TestContext.Current.CancellationToken));
         Assert.Equal(UsbTwo, registry.DefaultDriverId);
 
         engine.Reachable.Add(UsbOne);
-        Assert.Equal(UsbTwo, await registry.EnsureDefaultAsync());
+        Assert.Equal(UsbTwo, await registry.EnsureDefaultAsync(ct: TestContext.Current.CancellationToken));
     }
 
     [Fact]
     public async Task Set_default_rejects_an_unknown_scanner()
     {
         var (registry, _, _) = await Make.RegistryAsync();
-        await Assert.ThrowsAsync<InvalidOperationException>(() => registry.SetDefaultAsync("nope"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => registry.SetDefaultAsync("nope", ct: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class RegistryManagerTests
     public async Task Refresh_marks_unreachable_scanners_not_ready_without_throwing()
     {
         var (registry, engine, _) = await Make.RegistryAsync(new[] { UsbOne }, Make.Entry(UsbOne), Make.Entry(UsbTwo));
-        await registry.LoadAndRefreshAsync();
+        await registry.LoadAndRefreshAsync(ct: TestContext.Current.CancellationToken);
         Assert.Equal(ScannerReachability.Ready, registry.Entries.First(e => e.DriverId == UsbOne).Reachability);
         Assert.Equal(ScannerReachability.NotReady, registry.Entries.First(e => e.DriverId == UsbTwo).Reachability);
     }
@@ -117,7 +117,7 @@ public class RegistryManagerTests
         var (registry, engine, _) = await Make.RegistryAsync(new[] { UsbOne }, Make.Entry(UsbOne));
         engine.Discoverable.Add(new DiscoveredScanner(UsbOne, "V", "One"));
         engine.Discoverable.Add(new DiscoveredScanner(UsbTwo, "V", "Two"));
-        var found = await registry.DiscoverAvailableAsync();
+        var found = await registry.DiscoverAvailableAsync(ct: TestContext.Current.CancellationToken);
         Assert.Equal(2, found.Count);
     }
 
@@ -126,18 +126,18 @@ public class RegistryManagerTests
     {
         var (registry, engine, _) = await Make.RegistryAsync();
         engine.DiscoveryThrows = true;
-        await Assert.ThrowsAsync<InvalidOperationException>(() => registry.DiscoverAvailableAsync());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => registry.DiscoverAvailableAsync(ct: TestContext.Current.CancellationToken));
     }
 
     [Fact]
     public async Task Adding_the_same_scanner_over_another_protocol_updates_the_entry()
     {
         var (registry, _, _) = await Make.RegistryAsync(new[] { AirScanA, EsclA });
-        var first = await registry.AddFromDiscoveryAsync(new DiscoveredScanner(AirScanA, "EPSON", "Model X (airscan:ip=192.0.2.10)"));
+        var first = await registry.AddFromDiscoveryAsync(new DiscoveredScanner(AirScanA, "EPSON", "Model X (airscan:ip=192.0.2.10)"), ct: TestContext.Current.CancellationToken);
         var repointed = new List<(string Old, string New)>();
         registry.ScannerRepointed += (o, n) => repointed.Add((o, n));
 
-        var second = await registry.AddFromDiscoveryAsync(new DiscoveredScanner(EsclA, "Epson", "Model X (escl:https://192.0.2.10:443)"));
+        var second = await registry.AddFromDiscoveryAsync(new DiscoveredScanner(EsclA, "Epson", "Model X (escl:https://192.0.2.10:443)"), ct: TestContext.Current.CancellationToken);
 
         Assert.Single(registry.Entries);
         Assert.Same(first, second);
@@ -152,8 +152,8 @@ public class RegistryManagerTests
     public async Task Adding_the_identical_connection_again_does_not_duplicate_or_fail()
     {
         var (registry, _, _) = await Make.RegistryAsync(new[] { UsbOne });
-        await registry.AddManualAsync(UsbOne, "One", null);
-        await registry.AddManualAsync(UsbOne, "Again", null);
+        await registry.AddManualAsync(UsbOne, "One", null, ct: TestContext.Current.CancellationToken);
+        await registry.AddManualAsync(UsbOne, "Again", null, ct: TestContext.Current.CancellationToken);
         Assert.Single(registry.Entries);
         Assert.Equal("One", registry.Entries[0].DisplayName);
     }
@@ -165,8 +165,8 @@ public class RegistryManagerTests
         var a = $"escl:https://192.0.2.50/{uuid}";
         var b = $"escl:https://192.0.2.99/{uuid}";
         var (registry, _, _) = await Make.RegistryAsync(new[] { a, b });
-        await registry.AddManualAsync(a, "Scanner", null);
-        await registry.AddManualAsync(b, "Scanner moved", null);
+        await registry.AddManualAsync(a, "Scanner", null, ct: TestContext.Current.CancellationToken);
+        await registry.AddManualAsync(b, "Scanner moved", null, ct: TestContext.Current.CancellationToken);
         Assert.Single(registry.Entries);
         Assert.Equal(uuid, registry.Entries[0].DeviceId);
         Assert.Equal(b, registry.Entries[0].DriverId);
@@ -176,8 +176,8 @@ public class RegistryManagerTests
     public async Task Different_addresses_without_a_device_id_are_two_scanners()
     {
         var (registry, _, _) = await Make.RegistryAsync(new[] { "escl:https://192.0.2.21", "escl:https://192.0.2.22" });
-        await registry.AddManualAsync("escl:https://192.0.2.21", "A", null);
-        await registry.AddManualAsync("escl:https://192.0.2.22", "B", null);
+        await registry.AddManualAsync("escl:https://192.0.2.21", "A", null, ct: TestContext.Current.CancellationToken);
+        await registry.AddManualAsync("escl:https://192.0.2.22", "B", null, ct: TestContext.Current.CancellationToken);
         Assert.Equal(2, registry.Entries.Count);
     }
 
@@ -188,10 +188,10 @@ public class RegistryManagerTests
         var (registry, engine, _) = await Make.RegistryAsync(new[] { manualId, AirScanA });
         engine.Resolvable["printer.example.local"] = "192.0.2.10";
 
-        await registry.AddManualAsync(manualId, "printer.example.local", "printer.example.local", requireReachable: true);
+        await registry.AddManualAsync(manualId, "printer.example.local", "printer.example.local", requireReachable: true, ct: TestContext.Current.CancellationToken);
         Assert.Equal("192.0.2.10", registry.Entries[0].ResolvedAddress);
 
-        await registry.AddFromDiscoveryAsync(new DiscoveredScanner(AirScanA, "V", "M (airscan:ip=192.0.2.10)"));
+        await registry.AddFromDiscoveryAsync(new DiscoveredScanner(AirScanA, "V", "M (airscan:ip=192.0.2.10)"), ct: TestContext.Current.CancellationToken);
         Assert.Single(registry.Entries);
         Assert.Equal(AirScanA, registry.Entries[0].DriverId);
     }
@@ -201,7 +201,7 @@ public class RegistryManagerTests
     {
         var (registry, _, store) = await Make.RegistryAsync();
         await Assert.ThrowsAsync<ScannerUnreachableException>(
-            () => registry.AddManualAsync("manual:x", "X", "192.0.2.77", requireReachable: true));
+            () => registry.AddManualAsync("manual:x", "X", "192.0.2.77", requireReachable: true, ct: TestContext.Current.CancellationToken));
         Assert.Empty(registry.Entries);
         Assert.Equal(0, store.Saves);
     }
@@ -210,8 +210,8 @@ public class RegistryManagerTests
     public async Task Manual_add_requires_a_driver_id_and_a_name()
     {
         var (registry, _, _) = await Make.RegistryAsync();
-        await Assert.ThrowsAsync<ArgumentException>(() => registry.AddManualAsync("", "X", null));
-        await Assert.ThrowsAsync<ArgumentException>(() => registry.AddManualAsync("x", " ", null));
+        await Assert.ThrowsAsync<ArgumentException>(() => registry.AddManualAsync("", "X", null, ct: TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(() => registry.AddManualAsync("x", " ", null, ct: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -219,7 +219,7 @@ public class RegistryManagerTests
     {
         var (registry, engine, _) = await Make.RegistryAsync(new[] { AirScanA }, Make.Entry(AirScanA, "Scanner", null));
         engine.Discoverable.Add(new DiscoveredScanner(EsclA, "E", "M (escl:https://192.0.2.10:443)"));
-        await registry.LoadAndRefreshAsync();
+        await registry.LoadAndRefreshAsync(ct: TestContext.Current.CancellationToken);
         Assert.Equal(ScannerReachability.Ready, registry.Entries[0].Reachability);
 
         engine.Reachable.Clear();
@@ -227,7 +227,7 @@ public class RegistryManagerTests
         var repointed = new List<(string, string)>();
         registry.ScannerRepointed += (o, n) => repointed.Add((o, n));
 
-        await registry.LoadAndRefreshAsync();
+        await registry.LoadAndRefreshAsync(ct: TestContext.Current.CancellationToken);
 
         Assert.Single(registry.Entries);
         Assert.Equal(EsclA, registry.Entries[0].DriverId);
@@ -241,7 +241,7 @@ public class RegistryManagerTests
     {
         var (registry, engine, _) = await Make.RegistryAsync(null, Make.Entry(AirScanA));
         engine.Discoverable.Add(new DiscoveredScanner(EsclA, "E", "M (escl:https://192.0.2.10:443)"));
-        await registry.LoadAndRefreshAsync();
+        await registry.LoadAndRefreshAsync(ct: TestContext.Current.CancellationToken);
         Assert.Equal(AirScanA, registry.Entries[0].DriverId);
         Assert.Equal(ScannerReachability.NotReady, registry.Entries[0].Reachability);
     }
@@ -251,7 +251,7 @@ public class RegistryManagerTests
     {
         var (registry, engine, _) = await Make.RegistryAsync(null, Make.Entry(AirScanA));
         engine.DiscoveryThrows = true;
-        await registry.LoadAndRefreshAsync();
+        await registry.LoadAndRefreshAsync(ct: TestContext.Current.CancellationToken);
         Assert.Equal(ScannerReachability.NotReady, registry.Entries[0].Reachability);
     }
 
@@ -259,13 +259,13 @@ public class RegistryManagerTests
     public async Task Removing_a_scanner_raises_ScannerRemoved_only_when_it_existed()
     {
         var (registry, _, _) = await Make.RegistryAsync(new[] { UsbOne });
-        await registry.AddManualAsync(UsbOne, "One", null);
+        await registry.AddManualAsync(UsbOne, "One", null, ct: TestContext.Current.CancellationToken);
         var removed = new List<string>();
         registry.ScannerRemoved += removed.Add;
 
-        await registry.RemoveAsync("does-not-exist");
+        await registry.RemoveAsync("does-not-exist", ct: TestContext.Current.CancellationToken);
         Assert.Empty(removed);
-        await registry.RemoveAsync(UsbOne);
+        await registry.RemoveAsync(UsbOne, ct: TestContext.Current.CancellationToken);
         Assert.Equal(new[] { UsbOne }, removed);
     }
 
@@ -279,11 +279,11 @@ public class RegistryManagerTests
             var engine = new FakeEngine();
             engine.Reachable.Add(UsbOne);
             var registry = new ScannerRegistryManager(new JsonScannerRegistryStore(path), engine);
-            await registry.LoadStoredAsync();
-            await registry.AddManualAsync(UsbOne, "One", "192.0.2.5");
+            await registry.LoadStoredAsync(ct: TestContext.Current.CancellationToken);
+            await registry.AddManualAsync(UsbOne, "One", "192.0.2.5", ct: TestContext.Current.CancellationToken);
 
             var reloaded = new ScannerRegistryManager(new JsonScannerRegistryStore(path), engine);
-            await reloaded.LoadStoredAsync();
+            await reloaded.LoadStoredAsync(ct: TestContext.Current.CancellationToken);
             Assert.Equal(UsbOne, reloaded.DefaultDriverId);
             Assert.Equal("192.0.2.5", reloaded.Entries[0].ManualAddress);
             Assert.Equal(ScannerReachability.Unknown, reloaded.Entries[0].Reachability);
@@ -295,7 +295,7 @@ public class RegistryManagerTests
     public async Task A_missing_registry_file_loads_as_empty()
     {
         var path = Path.Combine(Path.GetTempPath(), "krocketdocumentscanner-tests-" + Guid.NewGuid().ToString("N"), "none.json");
-        var loaded = await new JsonScannerRegistryStore(path).LoadAsync();
+        var loaded = await new JsonScannerRegistryStore(path).LoadAsync(ct: TestContext.Current.CancellationToken);
         Assert.Empty(loaded.Entries);
         Assert.Null(loaded.DefaultDriverId);
     }

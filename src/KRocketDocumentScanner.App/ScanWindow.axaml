@@ -97,6 +97,10 @@
                     IsVisible="{Binding ShowSourcePicker}" />
           <CheckBox Content="{x:Static s:Strings.SkipBlankPagesLabel}" IsChecked="{Binding DropBlankPages}"
                     IsVisible="{Binding ShowSourcePicker}" />
+          <ToggleSwitch IsChecked="{Binding ReduceFileSize}"
+                        OnContent="{x:Static s:Strings.ReduceFileSizeLabel}"
+                        OffContent="{x:Static s:Strings.ReduceFileSizeLabel}"
+                        ToolTip.Tip="{x:Static s:Strings.ReduceFileSizeTip}" />
 
           <StackPanel Spacing="0" IsVisible="{Binding HasPreview}">
             <Button Name="CropPanelToggle" Classes="panelheader" Click="OnToggleCropPanel">

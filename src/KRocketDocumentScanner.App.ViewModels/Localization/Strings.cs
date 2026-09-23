@@ -33,6 +33,8 @@ public static class Strings
     public static string CropPanelToggleButton { get; set; } = "Crop Adjustment";
     public static string AutoDeskewLabel { get; set; } = "Straighten pages automatically";
     public static string SkipBlankPagesLabel { get; set; } = "Skip blank pages";
+    public static string ReduceFileSizeLabel { get; set; } = "Reduce file size";
+    public static string ReduceFileSizeTip { get; set; } = "Compresses pages when saved as PDF or JPEG. Turn off to keep full quality.";
     public static string PreviewButton { get; set; } = "Preview";
     public static string ScanActionButton { get; set; } = "Scan";
     public static string PreviewPlaceholder { get; set; } = "Preview the scan to see the page here";

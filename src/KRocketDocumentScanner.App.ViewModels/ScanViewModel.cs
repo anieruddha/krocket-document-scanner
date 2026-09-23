@@ -64,18 +64,21 @@ public sealed class ScanViewModel : ObservableObject
     private readonly ScannerRegistryManager _registry;
     private readonly Func<string, Task<bool>> _saveAs;
     private readonly Func<Task> _openManageScanners;
+    private readonly Action<CapturedPage> _encodePage;
 
     public ScanViewModel(
         IScannerEngine engine,
         ScannerRegistryManager registry,
         string? preselectedDriverId,
         Func<string, Task<bool>> saveAs,
-        Func<Task> openManageScanners)
+        Func<Task> openManageScanners,
+        Action<CapturedPage> encodePage)
     {
         _engine = engine;
         _registry = registry;
         _saveAs = saveAs;
         _openManageScanners = openManageScanners;
+        _encodePage = encodePage;
 
         _driverId = preselectedDriverId ?? registry.DefaultDriverId;
         registry.Changed += SyncChoiceDots;
@@ -454,6 +457,14 @@ public sealed class ScanViewModel : ObservableObject
         }
     }
 
+    private bool _reduceFileSize = true;
+
+    public bool ReduceFileSize
+    {
+        get => _reduceFileSize;
+        set => SetField(ref _reduceFileSize, value);
+    }
+
     private bool _minimapStretch = ScanDefaults.StretchToPage;
 
     public bool MinimapStretch
@@ -706,6 +717,7 @@ public sealed class ScanViewModel : ObservableObject
         string? preset = IsCustomPreset ? null : PagePresetChoices[_pagePresetIndex];
         if (_minimapStretch && preset is not null)
             page.StretchToSheet = PaperDetector.KnownSizes.FirstOrDefault(k => k.Name == preset);
+        if (_reduceFileSize) _encodePage(page);
         Pages.Add(new ScannedPageViewModel { Page = page, Number = Pages.Count + 1, PresetName = preset });
         PageCount = Pages.Count;
         OnPropertyChanged(nameof(Pages));

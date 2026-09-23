@@ -138,7 +138,7 @@ public class ImagingAndInfrastructureTests
             for (int i = 1; i <= 3; i++) { await Task.Delay(1, ct); yield return i; }
         }
         var got = new List<int>();
-        await foreach (var i in executor.RunStreamAsync(Three)) got.Add(i);
+        await foreach (var i in executor.RunStreamAsync(Three, ct: TestContext.Current.CancellationToken)) got.Add(i);
         Assert.Equal(new[] { 1, 2, 3 }, got);
 
         async IAsyncEnumerable<int> Throws([System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken ct)
@@ -148,7 +148,7 @@ public class ImagingAndInfrastructureTests
         }
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
         {
-            await foreach (var _ in executor.RunStreamAsync(Throws)) { }
+            await foreach (var _ in executor.RunStreamAsync(Throws, ct: TestContext.Current.CancellationToken)) { }
         });
     }
 
@@ -157,8 +157,8 @@ public class ImagingAndInfrastructureTests
     {
         using var executor = new SerialExecutor("test-errors");
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => executor.RunAsync<int>(_ => throw new InvalidOperationException("x")));
-        Assert.Equal(7, await executor.RunAsync(_ => Task.FromResult(7)));
+            () => executor.RunAsync<int>(_ => throw new InvalidOperationException("x"), ct: TestContext.Current.CancellationToken));
+        Assert.Equal(7, await executor.RunAsync(_ => Task.FromResult(7), ct: TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -169,18 +169,18 @@ public class ImagingAndInfrastructureTests
         {
             var path = Path.Combine(dir, "log.jsonl");
             var log = new FileNetworkActivityLog(path);
-            Assert.Empty(await log.ReadAllAsync());
+            Assert.Empty(await log.ReadAllAsync(ct: TestContext.Current.CancellationToken));
 
-            await log.LogAsync(new NetworkActivityEntry(DateTimeOffset.UtcNow, "dest", "purpose", "proto", true, "detail"));
-            await log.LogAsync(new NetworkActivityEntry(DateTimeOffset.UtcNow, "dest2", "purpose2", "proto2", false, null));
-            var first = await new FileNetworkActivityLog(path).ReadAllAsync();
+            await log.LogAsync(new NetworkActivityEntry(DateTimeOffset.UtcNow, "dest", "purpose", "proto", true, "detail"), ct: TestContext.Current.CancellationToken);
+            await log.LogAsync(new NetworkActivityEntry(DateTimeOffset.UtcNow, "dest2", "purpose2", "proto2", false, null), ct: TestContext.Current.CancellationToken);
+            var first = await new FileNetworkActivityLog(path).ReadAllAsync(ct: TestContext.Current.CancellationToken);
             Assert.Equal(2, first.Count);
             Assert.Equal("detail", first[0].Detail);
             Assert.False(first[1].Success);
 
             await Task.WhenAll(Enumerable.Range(0, 20).Select(i =>
                 log.LogAsync(new NetworkActivityEntry(DateTimeOffset.UtcNow, $"d{i}", "p", "x", true, null))));
-            Assert.Equal(22, (await log.ReadAllAsync()).Count);
+            Assert.Equal(22, (await log.ReadAllAsync(ct: TestContext.Current.CancellationToken)).Count);
         }
         finally { if (Directory.Exists(dir)) Directory.Delete(dir, true); }
     }

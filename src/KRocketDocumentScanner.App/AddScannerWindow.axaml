@@ -108,7 +108,7 @@
 
             <StackPanel Spacing="5">
               <TextBlock Text="{x:Static s:Strings.AddressLabel}" FontSize="13" />
-              <TextBox Text="{Binding ManualAddress}" Watermark="{x:Static s:Strings.AddressWatermark}" />
+              <TextBox Text="{Binding ManualAddress}" PlaceholderText="{x:Static s:Strings.AddressWatermark}" />
             </StackPanel>
           </StackPanel>
         </DockPanel>

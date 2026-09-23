@@ -9,8 +9,10 @@ namespace KRocketDocumentScanner.App;
 public sealed class AppSettings
 {
     private const string NetworkTimeoutKey = "network_timeout_seconds";
+    private const string ReduceFileSizeKey = "reduce_file_size";
 
     public TimeSpan NetworkTimeout { get; private init; } = SettingsDefaults.NetworkCallTimeout;
+    public bool ReduceFileSize { get; private init; } = SettingsDefaults.ReduceFileSize;
 
     public static string FilePath() =>
         Path.Combine(Path.GetDirectoryName(JsonScannerRegistryStore.DefaultFilePath())!, "settings.toml");
@@ -45,7 +47,14 @@ public sealed class AppSettings
             var seconds = Convert.ToDouble(raw, CultureInfo.InvariantCulture);
             if (!(seconds > 0)) return false;
 
-            settings = new AppSettings { NetworkTimeout = TimeSpan.FromSeconds(seconds) };
+            var reduceFileSize = SettingsDefaults.ReduceFileSize;
+            if (table.TryGetValue(ReduceFileSizeKey, out var rawReduce))
+            {
+                if (rawReduce is not bool parsedReduce) return false;
+                reduceFileSize = parsedReduce;
+            }
+
+            settings = new AppSettings { NetworkTimeout = TimeSpan.FromSeconds(seconds), ReduceFileSize = reduceFileSize };
             return true;
         }
         catch
@@ -59,7 +68,9 @@ public sealed class AppSettings
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var text =
             "# Longest wait for one scanner network call, in seconds.\n" +
-            $"{NetworkTimeoutKey} = {settings.NetworkTimeout.TotalSeconds.ToString(CultureInfo.InvariantCulture)}\n";
+            $"{NetworkTimeoutKey} = {settings.NetworkTimeout.TotalSeconds.ToString(CultureInfo.InvariantCulture)}\n" +
+            "# Start with \"Reduce file size\" turned on when saving scans as PDF or JPEG.\n" +
+            $"{ReduceFileSizeKey} = {(settings.ReduceFileSize ? "true" : "false")}\n";
         var temp = path + ".tmp";
         File.WriteAllText(temp, text);
         File.Move(temp, path, overwrite: true);
